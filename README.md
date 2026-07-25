@@ -7,6 +7,14 @@ the cheapest path on a **risk-adjusted (RALC)** basis.
 
 > Illustrative decision-support tool — **not financial advice**.
 
+## The web app
+
+![Commodity Copilot web app](app_screenshot.png)
+
+Set the risk appetite, holding cost and horizon, optionally upload your own sales file,
+click **Run**, and get per-commodity decisions, an efficient frontier, a Monte-Carlo pay-off
+distribution and downloadable reports.
+
 ## What it does
 
 | Stage | What happens |
