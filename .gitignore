@@ -1,0 +1,24 @@
+# ---- sensitive / proprietary data - NEVER publish ----
+Lens_Sales_Data.xlsx
+TradeData*.xlsx
+
+# ---- generated outputs (regenerate by running the scripts) ----
+copilot_results.json
+copilot_model_explained.html
+copilot_audit.html
+copilot_slides.html
+*.pptx
+*.pdf
+
+# ---- superseded v1 prototype ----
+hedge_engine.py
+hedge_html.py
+hedge_results.json
+hedge_model_explained.html
+hedge_slides.html
+
+# ---- python / os junk ----
+__pycache__/
+*.pyc
+.DS_Store
+.streamlit/secrets.toml
