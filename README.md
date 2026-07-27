@@ -1,5 +1,19 @@
 # Commodity Copilot — an AI Buy / Hedge Decision Engine
 
+### ▶️ **[TRY THE LIVE APP](https://pulket.github.io/commodity-buy-hedge-copilot/)** — runs in your browser, no install, no server
+
+🔗 **https://pulket.github.io/commodity-buy-hedge-copilot/**
+
+The full app runs client-side (WebAssembly). Also on the live site:
+**[interactive explainer](https://pulket.github.io/commodity-buy-hedge-copilot/explainer.html)** ·
+**[executive slides](https://pulket.github.io/commodity-buy-hedge-copilot/slides.html)** ·
+**[recommendation slide](https://pulket.github.io/commodity-buy-hedge-copilot/recommendation.html)** ·
+**[full audit document](https://pulket.github.io/commodity-buy-hedge-copilot/audit.html)**
+
+*(First load takes ~30–60s while Python starts in your browser — then it's instant.)*
+
+---
+
 A transparent **Sense → Score → Decide → Act** engine that helps a procurement team
 decide **what to buy, when, how much, and whether to hedge** across a basket of
 commodities — combining a **financial track** and a **supply-chain track**, and choosing
@@ -9,7 +23,7 @@ the cheapest path on a **risk-adjusted (RALC)** basis.
 
 ## The web app
 
-![Commodity Copilot web app](app_screenshot.png)
+[![Commodity Copilot web app](app_screenshot.png)](https://pulket.github.io/commodity-buy-hedge-copilot/)
 
 Set the risk appetite, holding cost and horizon, optionally upload your own sales file,
 click **Run**, and get per-commodity decisions, an efficient frontier, a Monte-Carlo pay-off
