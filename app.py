@@ -117,7 +117,7 @@ for n, r in C.items():
         "Risk cut": f"-{o['risk_cut_pct']:.0f}%",
         "Timing": r["timing"]["verdict"],
         "Act": "AUTO" if r["act"]["decision"] == "AUTO-EXECUTE" else "ESCALATE"})
-st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+st.table(pd.DataFrame(rows).set_index("Commodity"))
 st.caption("**Lock/Opt/Float** = % locked (forwards) / option-hedged / floating — adds to 100%. "
            "**Timing** = physical buy-and-hold vs hedge, incl. holding cost.")
 
@@ -138,7 +138,7 @@ st.markdown("**When to buy — physical (with holding cost) vs hedge**")
 tdf = pd.DataFrame([{"Plan": p["name"], "Type": p["kind"], "E[cost] (Cr)": p["E"],
                      "Risk SD (Cr)": p["sd"], "CaR95 (Cr)": p["car95"], "RALC (Cr)": p["ralc"]}
                     for p in tm["policies"]])
-st.dataframe(tdf, use_container_width=True, hide_index=True)
+st.table(tdf.set_index("Plan"))
 verdict_col = "#C0243B" if tm["verdict"] == "HEDGE" else "#15803D"
 st.markdown(
     f"**Verdict: <span style='color:{verdict_col}'>{tm['verdict']}</span>** — best physical plan "
