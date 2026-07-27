@@ -50,7 +50,8 @@
   engine, and choosing the plan with the best <b>risk-adjusted cost</b>.</p>
 
   <div class="btns">
-    <a class="btn primary" href="explainer.html">▶ Interactive explainer (with charts)</a>
+    <a class="btn primary" href="live.html">▶ Launch the LIVE app (runs in your browser)</a>
+    <a class="btn ghost" href="explainer.html">Interactive explainer</a>
     <a class="btn ghost" href="slides.html">Executive slides</a>
     <a class="btn ghost" href="recommendation.html">Recommendation slide</a>
     <a class="btn ghost" href="audit.html">Full audit document</a>
@@ -83,14 +84,15 @@
     <a class="card" href="audit.html"><h3>Full audit document</h3><p>Every number traced back to the raw data — nothing is a black box.</p><span class="go">Open →</span></a>
   </div>
 
-  <h2>Run the live app yourself</h2>
+  <h2>Run the live app</h2>
   <div class="callout">
-    The interactive app needs a Python server (this page is static hosting, so it can't run it here).
-    Two ways to run it:
+    <b><a href="live.html">▶ Launch it right here in your browser</a></b> — the full Python app runs entirely
+    client-side (WebAssembly, via stlite), so it works on this permanent link with no server. First load
+    takes ~30–60 seconds. You can also:
     <ul>
-      <li><b>Deploy free on Streamlit Community Cloud:</b> at <b>share.streamlit.io</b>, connect this repo
-        (<code>pulket/commodity-buy-hedge-copilot</code>), main file <code>app.py</code> → you get a permanent
-        <code>*.streamlit.app</code> URL.</li>
+      <li><b>Deploy free on Streamlit Community Cloud</b> for a full-speed hosted version: at
+        <b>share.streamlit.io</b>, connect this repo (<code>pulket/commodity-buy-hedge-copilot</code>),
+        main file <code>app.py</code>.</li>
       <li><b>Run locally:</b> <code>pip install -r requirements.txt</code> then <code>streamlit run app.py</code>.</li>
     </ul>
   </div>

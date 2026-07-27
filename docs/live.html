@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commodity Copilot — live app</title>
+<style>
+  html,body,#root{height:100%;margin:0}
+  #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        font:16px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#4C1D95;background:#f6f7fb;z-index:5;text-align:center;padding:20px}
+  #boot .s{width:34px;height:34px;border:4px solid #e4d3fb;border-top-color:#7823DC;border-radius:50%;animation:sp 1s linear infinite;margin-bottom:16px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #boot small{color:#6b7280;margin-top:8px;max-width:460px}
+  .bar{position:fixed;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#7823DC,#B06BF2);z-index:6}
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<div id="boot"><div class="s"></div>
+  <div><b>Loading the live AI Commodity Copilot…</b></div>
+  <small>The full Python app is starting inside your browser (WebAssembly). First load takes ~30–60 seconds — after that it runs instantly, with no server.</small>
+</div>
+<div id="root"></div>
+<script type="module">
+  import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@1.8.1/build/stlite.js";
+  mount(
+    {
+      requirements: ["openpyxl"],
+      entrypoint: "browser_app.py",
+      files: {"browser_app.py": {"url": "browser_app.py"}, "app.py": {"url": "app.py"}, "commodity_copilot.py": {"url": "commodity_copilot.py"}, "copilot_html.py": {"url": "copilot_html.py"}, "copilot_audit.py": {"url": "copilot_audit.py"}, "Mayank_CO1_Line Chart.xlsx": {"url": "Mayank_CO1_Line%20Chart.xlsx"}, "Mayank_CO3_Line Chart.xlsx": {"url": "Mayank_CO3_Line%20Chart.xlsx"}, "Mayank_CO6_Line Chart.xlsx": {"url": "Mayank_CO6_Line%20Chart.xlsx"}, "Mayank_KO1_Line Chart.xlsx": {"url": "Mayank_KO1_Line%20Chart.xlsx"}, "Mayank_KO3_Line Chart.xlsx": {"url": "Mayank_KO3_Line%20Chart.xlsx"}, "Mayank_KO6_Line Chart.xlsx": {"url": "Mayank_KO6_Line%20Chart.xlsx"}, "Mayank_SI3_Line Chart.xlsx": {"url": "Mayank_SI3_Line%20Chart.xlsx"}, "Mayank_SI6_Line Chart.xlsx": {"url": "Mayank_SI6_Line%20Chart.xlsx"}, "Mayank_USDINR_Line Chart.xlsx": {"url": "Mayank_USDINR_Line%20Chart.xlsx"}, "Mayank_USDMYR_Line Chart.xlsx": {"url": "Mayank_USDMYR_Line%20Chart.xlsx"}, "Mayank_XAGUSD_Line Chart.xlsx": {"url": "Mayank_XAGUSD_Line%20Chart.xlsx"}, "Priya_BDIY_Line Chart.xlsx": {"url": "Priya_BDIY_Line%20Chart.xlsx"}, "Lens_Sales_Sample.xlsx": {"url": "Lens_Sales_Sample.xlsx"}}
+    },
+    document.getElementById("root")
+  );
+  // hide the boot overlay once Streamlit has painted something
+  const obs = new MutationObserver(() => {
+    if (document.querySelector('[data-testid="stAppViewContainer"], .stApp, section.main')) {
+      const b = document.getElementById('boot'); if (b) b.style.display='none'; obs.disconnect();
+    }
+  });
+  obs.observe(document.getElementById('root'), {childList:true, subtree:true});
+</script>
+</body>
+</html>
