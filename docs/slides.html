@@ -1,0 +1,197 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Commodity Copilot - executive story slides</title><style>
+:root{--p:#7823DC;--pd:#4C1D95;--t:#0F766E;--tint:#F5EEFD;--tint2:#EBDFFB;--tt:#E6F6F3;
+--ink:#20222B;--mut:#6B7280;--line:#E4E2EC;--gr:#15803D;--rd:#C0243B;--am:#B45309}
+*{box-sizing:border-box}
+html,body{margin:0;background:#5b5766;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+.hint{color:#e9e6f2;font-size:13px;text-align:center;padding:16px 10px 4px}
+.deck{display:flex;flex-direction:column;align-items:center;gap:26px;padding:14px 10px 60px}
+.slide{width:1280px;height:720px;background:#fff;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.35);overflow:hidden;padding:24px 32px 38px}
+.slide::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--p),#B06BF2)}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;font-weight:700;color:var(--p);text-transform:uppercase;margin-top:4px}
+.atitle{font-size:21px;line-height:1.2;font-weight:800;margin:4px 0 4px;max-width:1200px}
+.atitle b{color:var(--p)}
+.key{font-size:11.5px;color:var(--pd);background:var(--tint);border-left:4px solid var(--p);padding:5px 10px;border-radius:4px;margin:6px 0 10px;display:inline-block}
+.foot{position:absolute;left:32px;right:32px;bottom:11px;display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:6px}
+.wm{font-weight:800;color:var(--p);font-size:14px}.wm span{color:var(--ink)}
+.gh{color:var(--pd);font-weight:700}
+/* story ribbon */
+.ribbon{display:grid;grid-template-columns:1fr 22px 1fr 22px 1fr;align-items:stretch;gap:0;margin-bottom:12px}
+.rb{border:1px solid var(--line);border-radius:8px;padding:7px 11px;background:#fff}
+.rb .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.rb.problem{border-top:3px solid var(--rd)}.rb.problem .l{color:var(--rd)}
+.rb.insight{border-top:3px solid var(--am)}.rb.insight .l{color:var(--am)}
+.rb.solution{border-top:3px solid var(--gr)}.rb.solution .l{color:var(--gr)}
+.rb .x{font-size:11px;line-height:1.28;margin-top:2px}
+.arw{display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:16px;font-weight:800}
+/* swimlane */
+.swim{display:grid;grid-template-columns:118px 1fr 1fr 1fr 1fr;gap:7px}
+.hcell{border-radius:7px;padding:6px 8px;background:var(--pd);color:#fff}
+.hcell b{font-size:12px}.hcell span{font-size:8.4px;opacity:.85;display:block}
+.rowlab{border-radius:7px;padding:8px;display:flex;flex-direction:column;justify-content:center;color:#fff}
+.rowlab.fin{background:var(--p)}.rowlab.sc{background:var(--t)}
+.rowlab b{font-size:12px}.rowlab span{font-size:8.6px;opacity:.9;margin-top:2px}
+.cell{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:9.6px;line-height:1.3}
+.cell.fin{background:var(--tint)}.cell.sc{background:var(--tt)}
+.cell b{color:var(--pd)}.cell.sc b{color:var(--t)}
+.conv{grid-column:2 / 6;border:1.5px dashed var(--p);border-radius:8px;background:#faf7ff;padding:7px 12px;font-size:10.5px;margin-top:2px}
+.conv b{color:var(--pd)}
+.lanetag{grid-column:1;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--mut)}
+/* signal hierarchies */
+.hier{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.hpanel{border:1px solid var(--line);border-radius:9px;padding:10px 14px}
+.hpanel.fin{background:#faf7ff;border-color:var(--tint2)}
+.hpanel.sc{background:#eefbf8;border-color:#c9ece5}
+.ht{font-size:11.5px;font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.hpanel.fin .ht{color:var(--pd)}.hpanel.sc .ht{color:var(--t)}
+.ht span{font-size:8.6px;font-weight:600;color:var(--mut)}
+.hgroup{font-size:10.5px;margin:7px 0;line-height:1.35;display:flex;align-items:baseline;gap:8px}
+.hcat{flex:0 0 118px;font-size:8.6px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:3px 8px;border-radius:6px;color:#fff;text-align:center}
+.hpanel.fin .hcat{background:var(--p)}.hpanel.sc .hcat{background:var(--t)}
+.hgroup .hi{color:var(--ink)}
+/* slide 2 */
+.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.card{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff;border-top:3px solid var(--p)}
+.card .h{display:flex;justify-content:space-between;align-items:baseline}
+.card .nm{font-size:12.5px;font-weight:800}
+.badge{display:inline-block;font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;margin-right:3px}
+.b-buy{background:#dcfce7;color:#15803d}.b-phase{background:#fef3c7;color:#b45309}.b-wait{background:#fee2e2;color:#c0243b}
+.b-hedge{background:#ede9fe;color:#4c1d95}.b-phys{background:#cffafe;color:#0e7490}
+.conf{margin:5px 0 3px;font-size:9px;color:var(--mut)}
+.bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar>div{height:100%;background:var(--p)}
+.drv{font-size:9px;margin:3px 0;display:flex;justify-content:space-between}
+.drv b{color:var(--ink)}
+.plan{font-size:8.8px;color:var(--mut);margin-top:4px;border-top:1px solid var(--line);padding-top:3px}
+.sec{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--pd);margin:9px 0 5px;display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--p);display:inline-block}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi{border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:#fff}
+.kpi .l{font-size:8.4px;color:var(--mut);text-transform:uppercase;letter-spacing:.02em}
+.kpi .v{font-size:15px;font-weight:800;color:var(--pd)}
+.kpi .n{font-size:8px;color:var(--mut)}
+.kpi .ba{font-size:8px;color:var(--gr);font-weight:700}
+.gov{display:flex;gap:6px;align-items:stretch}
+.gstep{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:#fff;position:relative}
+.gstep b{font-size:9.4px;color:var(--pd)}.gstep span{font-size:8.2px;color:var(--mut);display:block;margin-top:1px}
+.garw{display:flex;align-items:center;color:var(--p);font-weight:800;font-size:14px}
+.howto{border:1px solid var(--p);border-radius:9px;background:var(--tint);padding:9px 12px}
+.howto .s{font-size:9.6px;margin:3px 0;line-height:1.3}
+.howto .s b{color:var(--pd)}
+</style></head><body><div class='hint'>Two 16:9 story slides. Screenshot each - or Print → Save as PDF - for PowerPoint.</div><div class='deck'>
+<section class="slide">
+ <div class="eyebrow">AI Commodity Copilot &nbsp;·&nbsp; The solution, in one picture</div>
+ <div class="atitle">Two decision tracks &mdash; <b>Financial</b> and <b>Supply-Chain</b> &mdash; fused through one
+  <b>Sense → Score → Decide → Act</b> engine</div>
+ <div class="key">One key message: timing, hedging and supply-continuity are <b>one governed decision, not three</b>.</div>
+ <div class="ribbon">
+  <div class="rb problem"><div class="l">Problem</div><div class="x">Commodity buys are made in silos &mdash; Finance guesses timing, Supply Chain fire-fights stock-outs &mdash; so cost <i>and</i> risk swing.</div></div>
+  <div class="arw">→</div>
+  <div class="rb insight"><div class="l">Insight</div><div class="x">The cheapest, safest buy needs <b>both</b> lenses at once: market economics <b>and</b> demand / inventory reality.</div></div>
+  <div class="arw">→</div>
+  <div class="rb solution"><div class="l">Solution</div><div class="x">A copilot that runs both tracks through four stages and resolves them into <b>one risk-adjusted, governed plan</b>.</div></div>
+ </div>
+ <div class="swim">
+  <div class="hcell" style="background:#fff;border:1px solid var(--line)"><b style="color:var(--pd)">Stage →</b><span style="color:var(--mut)">role in the flow</span></div>
+  <div class="hcell"><b>1 &middot; SENSE</b><span>INPUTS</span></div>
+  <div class="hcell"><b>2 &middot; SCORE</b><span>PROCESSING</span></div>
+  <div class="hcell"><b>3 &middot; DECIDE</b><span>DECISION LOGIC</span></div>
+  <div class="hcell"><b>4 &middot; ACT</b><span>OUTPUT</span></div>
+
+  <div class="rowlab fin"><b>💹 Financial<br>track</b><span>market economics</span></div>
+  <div class="cell fin"><b>Market signals</b><br>price %ile, momentum, volatility, forward curve (carry), FX, freight</div><div class="cell fin"><b>Buy-Now score 0-100</b><br>value + momentum + curve + FX, weighted</div><div class="cell fin"><b>Monte-Carlo + RALC</b><br>cover% / hedge% on the efficient frontier; timing DP: physical vs hedge</div><div class="cell fin"><b>Execute price cover</b><br>lock forwards / buy option caps</div>
+
+  <div class="rowlab sc"><b>🔗 Supply-chain<br>track</b><span>demand & inventory</span></div>
+  <div class="cell sc"><b>Supply signals</b><br>demand & volatility (sales), inventory, lead time, suppliers</div><div class="cell sc"><b>Urgency score</b><br>days-of-cover, reorder breach, demand-CV → continuity risk</div><div class="cell sc"><b>Volume plan</b><br>net procurement, must-cover, supplier cap, safety stock (from CV)</div><div class="cell sc"><b>Execute supply</b><br>mandatory continuity buy, order schedule & timing</div>
+
+  <div class="lanetag">converge ↓</div>
+  <div class="conv"><b>Integration:</b> at <b>Decide</b>, both tracks resolve into ONE plan &mdash; the volume the supply
+   chain needs, bought/hedged the way the market economics favour, chosen on <b>RALC = E[Cost] + &lambda;·SD[Cost]</b>,
+   then executed inside governance. Supply continuity is honoured <i>before</i> price is optimised.</div>
+ </div>
+ <div class="hier">
+  <div class="hpanel fin">
+   <div class="ht">💹 Financial signal hierarchy <span>→ Buy-Now score &amp; RALC optimiser</span></div>
+   <div class="hgroup"><span class="hcat">Price economics</span><span class="hi">Level (52-wk %ile) &middot; Momentum (trend) &middot; Forward curve (carry: contango / backwardation)</span></div>
+   <div class="hgroup"><span class="hcat">Risk</span><span class="hi">Volatility (annualised) &middot; Cost-at-Risk of each strategy</span></div>
+   <div class="hgroup"><span class="hcat">External cost</span><span class="hi">FX (USDMYR → USDINR landed) &middot; Freight (Baltic Dry Index)</span></div>
+  </div>
+  <div class="hpanel sc">
+   <div class="ht">🔗 Supply-chain signal hierarchy <span>→ net procurement, must-cover &amp; urgency</span></div>
+   <div class="hgroup"><span class="hcat">Demand</span><span class="hi">Run-rate &amp; volatility (CV) &mdash; read from the real sales file</span></div>
+   <div class="hgroup"><span class="hcat">Position</span><span class="hi">Inventory on hand &middot; days-of-cover &middot; reorder point (breach → urgency)</span></div>
+   <div class="hgroup"><span class="hcat">Constraints</span><span class="hi">Lead time &middot; supplier forward-capacity &middot; safety stock (sized from CV)</span></div>
+  </div>
+ </div>
+ <div class="foot"><div class="wm">kearney<span> &nbsp;| AI Commodity Copilot</span></div>
+  <div>Open-source & runnable → <span class="gh">github.com/pulket/commodity-buy-hedge-copilot</span></div><div>1</div></div>
+</section>
+<section class="slide">
+ <div class="eyebrow">AI Commodity Copilot &nbsp;·&nbsp; The engine in action &amp; the payoff</div>
+ <div class="atitle">Transparent decision cards + a risk-adjusted portfolio plan that moves <b>8 procurement KPIs</b>
+  &mdash; running today, open-source, usable in 3 steps</div>
+ <div class="key">One key message: every call is <b>explainable and governed</b>, and the impact lands on the KPIs a CPO/CFO owns.</div>
+
+ <div class="sec"><span class="dot"></span>Executive decision cards &mdash; what to do, how sure, and why</div>
+ <div class="cards"><div class="card">
+     <div class="h"><div class="nm">Palm oil</div>
+      <div>4,596 MYR &middot; 95%ile</div></div>
+     <div style="margin:4px 0"><span class="badge b-phase">PHASE</span><span class="badge b-hedge">HEDGE</span></div>
+     <div class="conf">Model confidence <b style="color:var(--pd)">86%</b></div>
+     <div class="bar"><div style="width:86%"></div></div>
+     <div style="margin-top:5px;font-size:8.6px;color:var(--mut);font-weight:700">TOP DRIVERS</div>
+     <div class="drv"><b>Value / price level</b><span style="color:var(--mut)">expensive ↓</span></div><div class="drv"><b>Forward curve / carry</b><span style="color:var(--mut)">contango ↑</span></div><div class="drv"><b>Currency (INR)</b><span style="color:var(--mut)">weakening ↑</span></div>
+     <div class="plan">Plan: <b>60% locked</b> / 20% option /
+      20% float &middot; risk &minus;68%</div>
+    </div><div class="card">
+     <div class="h"><div class="nm">Crude oil</div>
+      <div>99 USD &middot; 82%ile</div></div>
+     <div style="margin:4px 0"><span class="badge b-wait">WAIT</span><span class="badge b-hedge">HEDGE</span></div>
+     <div class="conf">Model confidence <b style="color:var(--pd)">94%</b></div>
+     <div class="bar"><div style="width:94%"></div></div>
+     <div style="margin-top:5px;font-size:8.6px;color:var(--mut);font-weight:700">TOP DRIVERS</div>
+     <div class="drv"><b>Momentum / trend</b><span style="color:var(--mut)">rising ↑</span></div><div class="drv"><b>Forward curve / carry</b><span style="color:var(--mut)">backwardation ↓</span></div><div class="drv"><b>Value / price level</b><span style="color:var(--mut)">expensive ↓</span></div>
+     <div class="plan">Plan: <b>60% locked</b> / 20% option /
+      20% float &middot; risk &minus;74%</div>
+    </div><div class="card">
+     <div class="h"><div class="nm">Silver</div>
+      <div>58 USD &middot; 38%ile</div></div>
+     <div style="margin:4px 0"><span class="badge b-buy">BUY</span><span class="badge b-phys">BUY PHYSICAL</span></div>
+     <div class="conf">Model confidence <b style="color:var(--pd)">93%</b></div>
+     <div class="bar"><div style="width:93%"></div></div>
+     <div style="margin-top:5px;font-size:8.6px;color:var(--mut);font-weight:700">TOP DRIVERS</div>
+     <div class="drv"><b>Forward curve / carry</b><span style="color:var(--mut)">contango ↑</span></div><div class="drv"><b>Currency (INR)</b><span style="color:var(--mut)">weakening ↑</span></div><div class="drv"><b>Momentum / trend</b><span style="color:var(--mut)">rising ↑</span></div>
+     <div class="plan">Plan: <b>60% locked</b> / 20% option /
+      20% float &middot; risk &minus;71%</div>
+    </div></div>
+
+ <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-top:9px">
+  <div>
+   <div class="sec"><span class="dot"></span>Business impact &mdash; before → after, on procurement KPIs</div>
+   <div class="kpis"><div class="kpi"><div class="l">Portfolio risk</div><div class="v">-33%</div><div class="n">natural hedge (netting)</div><div class="ba">reactive → engine</div></div><div class="kpi"><div class="l">Budget swing</div><div class="v">-68%</div><div class="n">flagship, vs unhedged</div><div class="ba">volatile → steady</div></div><div class="kpi"><div class="l">Worst-case cost</div><div class="v">-₹52Cr</div><div class="n">CaR95 trimmed</div><div class="ba">exposed → capped</div></div><div class="kpi"><div class="l">Working capital</div><div class="v">-10,935</div><div class="n">tonnes freed (net-of-inv)</div><div class="ba">over-buy → net buy</div></div><div class="kpi"><div class="l">Supply continuity</div><div class="v">100%</div><div class="n">must-cover floor first</div><div class="ba">stock-out risk → protected</div></div><div class="kpi"><div class="l">Hedge effectiveness</div><div class="v">RALC-set</div><div class="n">hedge only when it pays</div><div class="ba">ad-hoc → optimal</div></div><div class="kpi"><div class="l">Carrying cost</div><div class="v">min</div><div class="n">JIT where holding>carry</div><div class="ba">idle stock → timed</div></div><div class="kpi"><div class="l">Cycle time</div><div class="v">faster</div><div class="n">auto-execute in caps</div><div class="ba">meetings → rules</div></div></div>
+  </div>
+  <div>
+   <div class="sec"><span class="dot"></span>Governance &mdash; policy-based execution</div>
+   <div class="gov">
+    <div class="gstep"><b>Decide</b><span>engine proposes buy + hedge</span></div>
+    <div class="garw">→</div>
+    <div class="gstep"><b>Guardrail check</b><span>hedge cap, order cap (₹40Cr), CaR limit</span></div>
+    <div class="garw">→</div>
+    <div class="gstep"><b>Auto or escalate</b><span>in caps → auto; else council/CFO (palm ₹68Cr &gt; cap → escalate)</span></div>
+    <div class="garw">→</div>
+    <div class="gstep"><b>Audit</b><span>every action logged; override on</span></div>
+   </div>
+  </div>
+ </div>
+
+ <div style="margin-top:9px" class="howto">
+  <div class="sec" style="margin:0 0 4px"><span class="dot"></span>How to use it &mdash; live &amp; open-source: <span class="gh">github.com/pulket/commodity-buy-hedge-copilot</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+   <div class="s"><b>1. Open the repo</b> &mdash; code, README &amp; a Streamlit web app are all there.</div>
+   <div class="s"><b>2. Run it</b> &mdash; deploy free on share.streamlit.io (app.py), or locally: <code>streamlit run app.py</code>.</div>
+   <div class="s"><b>3. Use it</b> &mdash; upload your sales/price sheets, set risk appetite, click Run → decisions + reports.</div>
+  </div>
+ </div>
+
+ <div class="foot"><div class="wm">kearney<span> &nbsp;| AI Commodity Copilot</span></div>
+  <div>Live model output (balanced appetite, 20,000 MC paths). Illustrative - not financial advice.</div><div>2</div></div>
+</section></div></body></html>

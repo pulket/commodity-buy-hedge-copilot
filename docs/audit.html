@@ -1,0 +1,309 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commodity Copilot - Full Audit Document</title><style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f6f7fb;color:#20222b;font:15px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+    .wrap{max-width:900px;margin:0 auto;padding:26px 22px 90px}
+    h1{font-size:27px;margin:0 0 4px}
+    h2{font-size:20px;margin:36px 0 10px;padding:10px 0 0;border-top:3px solid #7823dc;color:#4c1d95}
+    h3{font-size:16px;margin:20px 0 6px;color:#7823dc}
+    .sub{color:#5b6270;margin:0 0 14px}
+    .toc{background:#fff;border:1px solid #e4e2ec;border-radius:10px;padding:14px 18px;margin:14px 0}
+    .toc a{color:#4c1d95;text-decoration:none;font-size:14px;display:block;margin:3px 0}
+    .toc a:hover{text-decoration:underline}
+    .card{background:#fff;border:1px solid #e4e2ec;border-radius:10px;padding:14px 18px;margin:12px 0}
+    table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0}
+    th,td{padding:7px 9px;text-align:right;border-bottom:1px solid #eef0f4;vertical-align:top}
+    th:first-child,td:first-child{text-align:left}
+    thead th{background:#f5eefd;color:#4c1d95;font-size:12px;text-transform:uppercase;letter-spacing:.02em}
+    .abbr td{text-align:left}.abbr td:first-child{white-space:nowrap;color:#4c1d95;font-weight:700;width:120px}
+    tr.pick{background:#eafaf0}tr.pick td{border-color:#c8ecd4}
+    tr.nv{background:#fdecef}
+    .calc{background:#faf7ff;border:1px solid #e4d3fb;border-left:4px solid #7823dc;border-radius:8px;padding:10px 14px;margin:10px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+    .calc .f{color:#4c1d95;font-weight:700;margin-bottom:3px}
+    .calc .s{color:#20222b;margin:2px 0}
+    .calc .r{color:#15803d;font-weight:700;margin-top:4px;font-size:14px}
+    .calc .note{color:#5b6270;font-family:-apple-system,sans-serif;font-size:12.5px;margin-top:6px}
+    .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+    .kv div{background:#fff;border:1px solid #e4e2ec;border-radius:8px;padding:8px 11px;font-size:13.5px}
+    .kv b{color:#4c1d95}
+    .callout{background:#f5eefd;border:1px solid #d8b8fb;border-radius:9px;padding:11px 15px;margin:12px 0}
+    .warn{background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;padding:11px 15px;margin:12px 0}
+    code{background:#f0edf7;padding:1px 5px;border-radius:4px;font-size:12.5px}
+    .muted{color:#5b6270}
+    .foot{color:#5b6270;font-size:12px;margin-top:30px;text-align:center;border-top:1px solid #e4e2ec;padding-top:12px}
+    b.p{color:#4c1d95}
+    </style></head><body><div class="wrap">
+
+<h1>Commodity Copilot &mdash; Full Audit Document</h1>
+<p class="sub">Every number in the model, traced back to the raw data. Written for a reader who
+knows nothing about finance: every abbreviation is defined, every formula is written out, and every
+calculation shows <b>formula &#8594; plug in the numbers &#8594; result</b>. Worked example =
+<b>Palm oil (CPO)</b>; the same method is applied to crude &amp; silver.</p>
+
+<div class="toc">
+<a href="#s1">1. How to read this document</a>
+<a href="#s2">2. Dictionary of every abbreviation &amp; term</a>
+<a href="#s3">3. The raw data (where every number starts)</a>
+<a href="#s4">4. Landed cost &mdash; the price that hits the P&amp;L</a>
+<a href="#s5">5. Supply chain &mdash; from demand to how much we ACTUALLY buy</a>
+<a href="#s6">6. The 6 market signals (each calculated)</a>
+<a href="#s7">7. The Buy-Now Score (each sub-score + the blend)</a>
+<a href="#s8">8. Monte-Carlo &mdash; simulating 20,000 price futures</a>
+<a href="#s9">9. The cost of a strategy (the formula)</a>
+<a href="#s10">10. RALC &amp; the frontier &mdash; and why '60% + 50%' is really a 100% split</a>
+<a href="#s11">11. Risk numbers: E, SD, CaR95, risk-cut</a>
+<a href="#s12">12. Act &mdash; the guardrail (auto-execute vs escalate) check</a>
+<a href="#s13">13. Backtest &mdash; checking it on real history</a>
+<a href="#s14">14. Portfolio &mdash; correlation &amp; the natural-hedge benefit</a>
+<a href="#s15">15. Where exactly the AI / LLM is used (and where it is NOT)</a>
+<a href="#s16">16. Every assumption we made (register)</a>
+</div>
+
+<h2 id="s1">1. How to read this document</h2>
+<div class="card">
+<p>The model works in four stages: <b class="p">SENSE</b> (read the market) &#8594;
+<b class="p">SCORE</b> (rate it 0&ndash;100) &#8594; <b class="p">DECIDE</b> (simulate and choose the
+best buy/hedge mix) &#8594; <b class="p">ACT</b> (execute inside limits). This document goes through
+each stage and shows the maths.</p>
+<p>Whenever you see a purple box like the one below, it is a real calculation you can check yourself:</p>
+<div class="calc"><div class="f">example = a &times; b</div><div class="s">= 2 &times; 3</div><div class="r">= 6</div><div class="note">The green line is the answer.</div></div>
+<p>All prices are the <b>latest available</b> in the data files (snapshot: 2026-07-23).</p>
+</div>
+
+<h2 id="s2">2. Dictionary of every abbreviation &amp; term</h2>
+<p class="muted">Read this once; the rest of the document will make sense. Nothing below assumes you already know it.</p>
+<div class="card"><table class="abbr"><tbody><tr><td><b>CPO</b></td><td>Crude Palm Oil - the commodity in the worked example.</td></tr><tr><td><b>MYR</b></td><td>Malaysian Ringgit - the currency palm oil is priced in.</td></tr><tr><td><b>USD</b></td><td>US Dollar.</td></tr><tr><td><b>INR</b></td><td>Indian Rupee - the buyer's home currency.</td></tr><tr><td><b>FX</b></td><td>Foreign Exchange - i.e. currency conversion rates.</td></tr><tr><td><b>USDMYR</b></td><td>How many Ringgit one US Dollar buys (e.g. 4.089).</td></tr><tr><td><b>USDINR</b></td><td>How many Rupees one US Dollar buys (e.g. 96.57).</td></tr><tr><td><b>BDIY</b></td><td>Baltic Dry Index - a global measure of ocean shipping (freight) cost.</td></tr><tr><td><b>FOB</b></td><td>Free On Board - the price of the goods before shipping is added.</td></tr><tr><td><b>CIF</b></td><td>Cost, Insurance &amp; Freight - the price after adding shipping.</td></tr><tr><td><b>t / bbl / oz</b></td><td>tonne / barrel / (troy) ounce - the unit each commodity is sold in.</td></tr><tr><td><b>Cr</b></td><td>Crore = 10,000,000 (1 crore = ₹1 followed by 7 zeros).</td></tr><tr><td><b>%ile / percentile</b></td><td>Where today's price ranks out of the last 252 days (0 = cheapest, 100 = dearest).</td></tr><tr><td><b>SMA</b></td><td>Simple Moving Average - the average price over the last N days.</td></tr><tr><td><b>Spot</b></td><td>The price for buying right now (we use the nearest futures contract).</td></tr><tr><td><b>Forward / Futures</b></td><td>An agreed price today to buy on a future date.</td></tr><tr><td><b>Forward curve</b></td><td>Spot vs 3-month vs 6-month prices lined up together.</td></tr><tr><td><b>Contango</b></td><td>Forward price is ABOVE spot - it costs extra to lock in (positive carry).</td></tr><tr><td><b>Backwardation</b></td><td>Forward price is BELOW spot - you are effectively paid to lock in.</td></tr><tr><td><b>Volatility</b></td><td>How much the price jumps around, expressed as a yearly %. Higher = riskier.</td></tr><tr><td><b>Momentum</b></td><td>The recent direction of the price (last ~1 month), as a %.</td></tr><tr><td><b>Hedge</b></td><td>A financial contract that protects you from price moves.</td></tr><tr><td><b>Cover</b></td><td>Buying part of your future demand now via a physical forward (locks the price).</td></tr><tr><td><b>Option / Call / Cap</b></td><td>Pay a small fee (premium) to cap the price if it rises, but keep the gain if it falls.</td></tr><tr><td><b>Premium</b></td><td>The fee you pay for an option.</td></tr><tr><td><b>Strike</b></td><td>The capped price level set in an option.</td></tr><tr><td><b>Floating</b></td><td>Volume left un-locked - you pay whatever the price is each month.</td></tr><tr><td><b>Net procurement</b></td><td>What we actually buy = demand for the period minus the inventory we can use.</td></tr><tr><td><b>Safety stock</b></td><td>A minimum buffer of inventory we always keep, in case of surprises.</td></tr><tr><td><b>Reorder point (ROP)</b></td><td>Inventory level that triggers a mandatory reorder = lead-time demand + safety stock.</td></tr><tr><td><b>Must-cover</b></td><td>The immediate, buy-regardless-of-price quantity to get back above the reorder point.</td></tr><tr><td><b>Lead time</b></td><td>Time from placing an order to the goods arriving (order -> ship -> arrive).</td></tr><tr><td><b>Lock/Opt/Float</b></td><td>The 100% split: % locked (forwards) / option-hedged / left floating.</td></tr><tr><td><b>Holding cost</b></td><td>The cost of keeping inventory (finance + storage + insurance), e.g. ~1.25% per month.</td></tr><tr><td><b>Carry</b></td><td>The extra cost baked into a forward price vs today's spot (positive in contango).</td></tr><tr><td><b>Just-in-time (JIT)</b></td><td>Buying only when needed (ordering exactly one lead-time ahead) to avoid holding cost.</td></tr><tr><td><b>Dynamic program (DP)</b></td><td>A method that finds the cheapest schedule by solving small sub-problems in order.</td></tr><tr><td><b>Wagner-Whitin</b></td><td>The classic lot-sizing DP that decides which weeks to buy to minimise price + holding cost.</td></tr><tr><td><b>MC / Monte-Carlo</b></td><td>Running thousands of random 'what-if' price futures to see the range of outcomes.</td></tr><tr><td><b>GBM</b></td><td>Geometric Brownian Motion - the standard maths for a random price path.</td></tr><tr><td><b>E[Cost] / Expected cost</b></td><td>The average total cost across all the simulated futures.</td></tr><tr><td><b>SD / Std dev</b></td><td>Standard Deviation - a number for how spread-out / uncertain the cost is.</td></tr><tr><td><b>CaR95</b></td><td>Cost-at-Risk (95%) - a bad-case cost: only 5% of futures are worse than this.</td></tr><tr><td><b>λ (lambda)</b></td><td>Risk-aversion dial: how much we punish uncertainty vs chasing the lowest cost.</td></tr><tr><td><b>RALC</b></td><td>Risk-Adjusted Landed Cost = E[Cost] + λ × SD[Cost]. The engine minimises this.</td></tr><tr><td><b>Correlation</b></td><td>-1 to +1: do two prices move together (+) or opposite (-) or unrelated (0)?</td></tr><tr><td><b>Diversification</b></td><td>Because prices don't all move together, combined risk is less than the sum.</td></tr><tr><td><b>Guardrail / Cap</b></td><td>A hard limit the auto-trading must stay inside.</td></tr><tr><td><b>MPOB / USDA</b></td><td>Malaysian Palm Oil Board / US Dept. of Agriculture - official supply-demand reports.</td></tr></tbody></table></div>
+
+<h2 id="s3">3. The raw data (where every number starts)</h2>
+<p>Everything is computed from the Excel files in this folder. Each file is a daily price history
+(newest row = today). For palm oil we use three of them &mdash; the price for buying now, in 3 months,
+and in 6 months:</p>
+<div class="kv">
+ <div><b>Spot (KO1, buy now)</b><br>4,596 MYR / tonne</div>
+ <div><b>3-month forward (KO3)</b><br>4,710 MYR / tonne</div>
+ <div><b>6-month forward (KO6)</b><br>4,793 MYR / tonne</div>
+ <div><b>USDMYR (FX)</b><br>4.0890 Ringgit per $</div>
+ <div><b>USDINR (FX)</b><br>96.57 Rupees per $</div>
+ <div><b>Baltic Dry Index (freight)</b><br>2,725 (today)</div>
+</div>
+<p class="muted">Business inputs: annual demand <b>114,950 units</b> and its volatility
+<b>CV 21%</b> come from the company's real sales file (Section 5); inventory
+15,000, lead time 1.5 months, planning horizon 6 months are the remaining assumptions (Section 16).</p>
+
+<h2 id="s4">4. Landed cost &mdash; the price that actually hits the P&amp;L</h2>
+<p>Palm is priced in Ringgit (MYR) in Malaysia, but we pay in Rupees (INR) in India, and we must add
+shipping and import duty. "Landed cost" is the all-in Rupee cost per tonne once it reaches us. Four steps:</p>
+<h3>Step 4a &mdash; freight (shipping) cost today</h3>
+<div class="calc"><div class="f">freight = base &times; (BDIY today &divide; BDIY 1-yr average)</div><div class="s">= $35 &times; (2,725 &divide; 2,279)</div><div class="s">= $35 &times; 1.195</div><div class="r">= $41.8 per tonne</div><div class="note">We assume a typical Malaysia&#8594;India rate of $35/t and scale it by how high freight is today vs its 1-year average.</div></div>
+<h3>Step 4b &mdash; convert the Ringgit price to Dollars (FOB)</h3>
+<div class="calc"><div class="f">USD price = MYR price &divide; USDMYR</div><div class="s">= 4,596 &divide; 4.0890</div><div class="r">= $1,124.0 per tonne</div></div>
+<h3>Step 4c &mdash; add freight, then convert Dollars to Rupees (CIF)</h3>
+<div class="calc"><div class="f">INR price = (USD price + freight) &times; USDINR</div><div class="s">= ($1,124.0 + $41.8) &times; 96.57</div><div class="s">= $1,165.8 &times; 96.57</div><div class="r">= ₹112,584 per tonne</div></div>
+<h3>Step 4d &mdash; add India import duty (27.5%)</h3>
+<div class="calc"><div class="f">landed cost = INR price &times; (1 + duty)</div><div class="s">= ₹112,584 &times; 1.275</div><div class="r">= ₹143,545 per tonne</div><div class="note">This ₹143,545/tonne is the number every rupee figure later in the model is built on.</div></div>
+
+<h2 id="s5">5. Supply chain &mdash; from demand to how much we ACTUALLY buy</h2>
+<p>Before any price optimisation, the engine turns <b>demand, inventory, lead time and supplier limits</b>
+into the real volume to source. The <b>demand and its month-to-month volatility are read from the company's
+real sales file</b> (7 full months) &mdash; not assumed:</p>
+<div class="calc"><div class="f">demand &amp; volatility (from the real sales file)</div><div class="s">annual demand = 114,950 units/yr (run-rate from monthly sales)</div><div class="s">demand volatility = CV 21% (std &divide; mean of monthly units)</div><div class="r">= 9,579 / month</div><div class="note">Earlier these were guessed; now they come straight from actual sales history.</div></div>
+<div class="calc"><div class="f">net procurement = 6-month demand &minus; usable inventory</div><div class="s">6-month demand = 114,950 &divide; 12 &times; 6 = 57,475 t</div><div class="s">usable inventory = inventory &minus; safety = 15,000 &minus; 4,065 = 10,935 t</div><div class="s">net = 57,475 &minus; 10,935</div><div class="r">= 46,540 tonnes</div><div class="note">This NET number - not the full demand - is what every rupee figure in Sections 9-11 is built on. What we already hold reduces what we buy.</div></div>
+<div class="calc"><div class="f">safety stock = 1.65 &times; demand-CV &times; monthly &times; &radic;(lead time)</div><div class="s">= 1.65 &times; 0.21 &times; 9,579 &times; &radic;1.5</div><div class="s">= 1.65 &times; 0.21 &times; 9,579 &times; 1.22</div><div class="r">= 4,065 tonnes</div><div class="note">The buffer is sized from the REAL demand volatility (1.65 = 95% service level). More volatile sales -> bigger safety stock. This is where the sales data directly changes the plan.</div></div>
+<div class="calc"><div class="f">reorder point = lead-time demand + safety stock</div><div class="s">lead-time demand = 1.5 months &times; 9,579 t/mo = 14,369 t</div><div class="s">+ safety stock = 4,065 t</div><div class="r">= 18,434 tonnes</div><div class="note">If inventory falls below this, we must reorder to protect supply.</div></div>
+<div class="calc"><div class="f">must-cover now = reorder point &minus; current inventory</div><div class="s">= 18,434 &minus; 15,000</div><div class="r">= 3,434 tonnes (mandatory, buy regardless of price)</div><div class="note">Current inventory 15,000 t = 1.6 months of cover, which is BELOW the reorder point - so the engine forces this buy first, for supply continuity, before optimising for price.</div></div>
+<div class="callout"><b>Supplier limit:</b> our 4 suppliers (Malaysia & Indonesia) can
+forward-commit at most <b>80%</b> of demand. That becomes a hard cap on how much
+we can physically lock (used in Section 10).</div>
+
+<h2 id="s6">6. The 6 market signals (each one calculated)</h2>
+<p>The engine reads the market as six simple numbers. Here is exactly how each is computed for palm.</p>
+
+<h3>5a &mdash; Price percentile (is it cheap or dear?)</h3>
+<div class="calc"><div class="f">percentile = (days in last 252 with price &le; today) &divide; 252 &times; 100</div><div class="s">= 240 &divide; 252 &times; 100</div><div class="r">= 95 out of 100</div><div class="note">0 = cheapest in a year, 100 = dearest. 95 means palm is very expensive right now.</div></div>
+
+<h3>5b &mdash; Momentum (which way is it moving?)</h3>
+<div class="calc"><div class="f">momentum = (price today &divide; price ~1 month ago &minus; 1) &times; 100</div><div class="s">= (4,596 &divide; 4,575 &minus; 1) &times; 100</div><div class="r">= +0.5%</div><div class="note">Today (2026-07-23) vs 22 trading days earlier (2026-06-24). Positive = rising.</div></div>
+
+<h3>5c &mdash; Volatility (how jumpy / risky?)</h3>
+<div class="calc"><div class="f">volatility = (std-dev of last 60 daily returns) &times; &radic;252 &times; 100</div><div class="s">= 0.0108 &times; 15.87 &times; 100</div><div class="r">= 17% per year</div><div class="note">A 'daily return' is the % change from one day to the next. Std-dev measures how spread out those are; &radic;252 scales one day up to a year (252 trading days). 17% is moderate.</div></div>
+
+<h3>5d &mdash; Forward curve (contango or backwardation?)</h3>
+<div class="calc"><div class="f">curve = (6-month price &divide; spot &minus; 1) &times; 100</div><div class="s">= (4,793 &divide; 4,596 &minus; 1) &times; 100</div><div class="r">= +4.3%</div><div class="note">Positive = contango (locking costs extra). Negative = backwardation (you get paid to lock).</div></div>
+
+<h3>5e &mdash; Rupee momentum (are imports getting dearer?)</h3>
+<div class="calc"><div class="f">rupee momentum = (USDINR today &divide; USDINR ~1 month ago &minus; 1) &times; 100</div><div class="s">= +1.94% (from the USDINR file)</div><div class="r">= +1.9%</div><div class="note">Positive = the rupee is weakening, so imports cost more.</div></div>
+
+<h3>5f &mdash; Landed cost</h3>
+<p>Already computed in Section 4: <b>₹143,545/tonne</b>.</p>
+
+<h2 id="s7">7. The Buy-Now Score (each sub-score, then the blend)</h2>
+<p>Each signal becomes a 0&ndash;100 sub-score (50 = neutral). Then we blend them with weights that add
+up to 100%. Above 60 = buy now, 45&ndash;60 = phase in, below 45 = wait.</p>
+<div class="calc"><div class="f">Value sub-score = 100 &minus; percentile</div><div class="s">= 100 &minus; 95</div><div class="r">= 5</div><div class="note">Cheaper price &#8594; higher score. Palm is dear, so this is low.</div></div>
+<div class="calc"><div class="f">Momentum sub-score = 50 + momentum &times; 10 (capped 0&ndash;100)</div><div class="s">= 50 + (0.5) &times; 10</div><div class="r">= 55</div></div>
+<div class="calc"><div class="f">Curve sub-score = 50 + curve &times; 10 (capped)</div><div class="s">= 50 + (4.3) &times; 10</div><div class="r">= 93</div></div>
+<div class="calc"><div class="f">FX sub-score = 50 + rupee-momentum &times; 10 (capped)</div><div class="s">= 50 + (1.9) &times; 10</div><div class="r">= 69</div></div>
+<div class="calc"><div class="f">Buy-Now = 0.35&times;Value + 0.20&times;Momentum + 0.25&times;Curve + 0.20&times;FX</div><div class="s">= 0.35&times;5 + 0.20&times;55 + 0.25&times;93 + 0.20&times;69</div><div class="s">= 1.7 + 10.9 + 23.2 + 13.9</div><div class="r">= 50 / 100 &#8594; PHASE IN</div><div class="note">The weights (35/20/25/20) are our chosen importance for each signal - listed in Section 16.</div></div>
+
+<h2 id="s8">8. Monte-Carlo &mdash; simulating 20,000 possible price futures</h2>
+<p>We cannot know tomorrow's price, so instead of guessing one number we simulate <b>20,000</b>
+random but realistic price paths for the next 6 months, and look at the whole range of outcomes. Each
+path is built one month at a time with this standard formula (GBM):</p>
+<div class="calc"><div class="f">next price = this price &times; e^( (&minus;&frac12;&sigma;&sup2;)&middot;dt + &sigma;&middot;&radic;dt &middot; Z )</div><div class="s">&sigma; (volatility) = 0.172</div><div class="s">dt (one month) = 1/12 = 0.083</div><div class="s">Z = a random draw from a normal 'bell curve' (different each step)</div><div class="r">= one simulated month</div><div class="note">The &minus;&frac12;&sigma;&sup2; term keeps the AVERAGE future price equal to today's price (we do not assume we can predict the direction - a deliberate, conservative choice). Z is what makes each of the 20,000 paths different.</div></div>
+<p class="muted">Doing this 6 times gives one 6-month path; doing that 20,000 times gives the full
+range of what the price could do.</p>
+
+<h2 id="s9">9. The cost of a strategy (the formula behind every rupee number)</h2>
+<p>A "strategy" = two dials: <b>cover</b> (% of the net requirement locked now via forwards) and <b>hedge</b>
+(% of the rest protected with options). Volumes are the <b>net procurement</b> from Section 5 &mdash; what we
+actually buy after netting off inventory. For each simulated price path we add up the total cost like this:</p>
+<div class="kv">
+ <div><b>Net to procure (Section 5)</b><br>46,540 t over 6 months</div>
+ <div><b>Per month</b><br>46,540 &divide; 6 = 7,757 t/month</div>
+</div>
+<div class="calc"><div class="f">Forward lock price = landed cost of the average of spot &amp; 6-month price</div><div class="s">average price = (4,596 + 4,793) &divide; 2 = 4,694 MYR</div><div class="s">&#8594; run through the same landed-cost steps as Section 4</div><div class="r">= ₹146,511 per tonne</div><div class="note">This is what you pay for the COVERED volume. It is slightly above today's landed cost because palm is in contango.</div></div>
+<div class="calc"><div class="f">Option premium (fee) = 0.4 &times; lock price &times; volatility &times; &radic;(0.5 year)</div><div class="s">= 0.4 &times; ₹146,511 &times; 0.17 &times; 0.707</div><div class="r">= ₹7,133 per tonne</div><div class="note">The fee you pay for an option that caps the price. ~0.4&times;&sigma;&times;&radic;T is a standard rule-of-thumb for an at-the-money option.</div></div>
+<p>Then, on every path, each tonne costs:</p>
+<div class="card"><ul>
+ <li><b>Covered/locked tonnes</b>: fixed at the lock price above &mdash; no surprises.</li>
+ <li><b>Option-hedged tonnes</b>: the lower of (that month's price) or (the cap), plus the premium.</li>
+ <li><b>Un-hedged tonnes</b>: whatever that month's simulated price is.</li>
+</ul>
+<p class="muted">Add these across all 6 months and all tonnes = the total cost for that one path. Repeat for
+20,000 paths &#8594; a full distribution of possible total costs.</p></div>
+
+<h2 id="s10">10. RALC &amp; the frontier &mdash; and why "60% + 50%" is really a 100% split</h2>
+<p>You asked for a decision that balances <b>cost</b> and <b>stability</b>. From the 20,000 paths, each
+strategy gives an average cost <b>E</b> and a spread <b>SD</b>. We score each with one number:</p>
+<div class="calc"><div class="f">RALC = E[Cost] + &lambda; &times; SD[Cost]</div><div class="s">&lambda; = 0.8 (the 'balanced' risk setting)</div><div class="s">for the chosen strategy: = 679 + 0.8 &times; 16.0</div><div class="s">= 679 + 12.8</div><div class="r">= 692 (₹ Cr)</div><div class="note">Lower RALC = better. &lambda; decides how much we punish uncertainty: 0.3 aggressive, 0.8 balanced, 1.5 conservative.</div></div>
+<p>The engine computes RALC for every allowed cover&times;hedge combination and picks the <b>lowest</b>.
+Here is the full table it chose from (this is the complete audit of the DECIDE step):</p>
+<table><thead><tr><th>Cover</th><th>Hedge</th><th>E[Cost]</th><th>SD (risk)</th><th>CaR95</th><th>RALC (rank)</th></tr></thead>
+<tbody><tr class="pick"><td>60%</td><td>50%</td><td>₹679.4 Cr</td><td>₹16.0 Cr</td><td>₹703.0 Cr</td><td><b>₹692.3 Cr</b> &#9664; ENGINE PICK (lowest RALC)</td></tr><tr><td>60%</td><td>25%</td><td>₹677.8 Cr</td><td>₹18.1 Cr</td><td>₹707.1 Cr</td><td><b>₹692.3 Cr</b></td></tr><tr><td>60%</td><td>0%</td><td>₹676.2 Cr</td><td>₹20.3 Cr</td><td>₹711.2 Cr</td><td><b>₹692.4 Cr</b></td></tr><tr><td>40%</td><td>50%</td><td>₹678.2 Cr</td><td>₹24.1 Cr</td><td>₹713.6 Cr</td><td><b>₹697.5 Cr</b></td></tr><tr><td>40%</td><td>25%</td><td>₹675.8 Cr</td><td>₹27.1 Cr</td><td>₹719.8 Cr</td><td><b>₹697.5 Cr</b></td></tr><tr><td>40%</td><td>0%</td><td>₹673.3 Cr</td><td>₹30.4 Cr</td><td>₹725.9 Cr</td><td><b>₹697.7 Cr</b></td></tr><tr><td>20%</td><td>50%</td><td>₹677.0 Cr</td><td>₹32.1 Cr</td><td>₹724.2 Cr</td><td><b>₹702.7 Cr</b></td></tr><tr><td>20%</td><td>25%</td><td>₹673.8 Cr</td><td>₹36.2 Cr</td><td>₹732.4 Cr</td><td><b>₹702.7 Cr</b></td></tr><tr><td>20%</td><td>0%</td><td>₹670.5 Cr</td><td>₹40.6 Cr</td><td>₹740.6 Cr</td><td><b>₹702.9 Cr</b></td></tr><tr><td>0%</td><td>50%</td><td>₹675.8 Cr</td><td>₹40.1 Cr</td><td>₹734.8 Cr</td><td><b>₹707.9 Cr</b></td></tr><tr><td>0%</td><td>25%</td><td>₹671.7 Cr</td><td>₹45.2 Cr</td><td>₹745.0 Cr</td><td><b>₹707.9 Cr</b></td></tr><tr class="nv"><td>0%</td><td>0%</td><td>₹667.6 Cr</td><td>₹50.7 Cr</td><td>₹755.3 Cr</td><td><b>₹708.2 Cr</b> &#9664; do-nothing</td></tr></tbody></table>
+<p class="muted">The green row is the winner (lowest RALC). The red row is "do-nothing" (buy everything at
+spot). Note the engine pick has almost the same expected cost as do-nothing but far less risk &mdash; that is
+the whole point.</p>
+
+<h3>Why the winner is 60% &amp; 50% &mdash; and why that is 100%, not 110%</h3>
+<div class="warn"><b>Common confusion:</b> "cover 60% + hedge 50%" looks like 110%. It is NOT, because the two
+percentages are on <b>different bases</b>: cover is a % of the <i>whole</i> requirement, but hedge is a % of
+only the <i>un-locked remainder</i>. Written as one pie they add to exactly 100%:</div>
+<div class="calc"><div class="f">Locked = cover</div><div class="s">= 60% of the net requirement</div><div class="r">= 60% (physical forwards)</div></div>
+<div class="calc"><div class="f">Option-hedged = hedge &times; (1 &minus; cover)</div><div class="s">= 50% &times; (100% &minus; 60%)</div><div class="s">= 50% &times; 40%</div><div class="r">= 20% (call options / caps)</div></div>
+<div class="calc"><div class="f">Un-hedged (floating) = (1 &minus; hedge) &times; (1 &minus; cover)</div><div class="s">= 50% &times; 40%</div><div class="r">= 20% (left floating)</div></div>
+<div class="calc"><div class="f">TOTAL</div><div class="s">= 60% + 20% + 20%</div><div class="r">= 100% of the net requirement (nothing double-counted)</div></div>
+<p><b>Why exactly 60% and 50%?</b> Both are the "balanced" preset's <b>caps</b>. The optimiser wanted to lock
+&amp; hedge even more (locking cuts risk), but two guardrails stop it:</p>
+<div class="card"><ul>
+ <li><b>Cover cap = 60%</b> &mdash; the smaller of the appetite cap
+   (60%) and what suppliers can forward-commit
+   (80%, from Section 5). You cannot lock more demand than suppliers will sell
+   forward, and you do not want to over-commit volume the forecast might not need.</li>
+ <li><b>Hedge cap = 50%</b> &mdash; the appetite's limit on protecting the floating part.</li>
+</ul>
+<p class="muted">So the numbers are not arbitrary: the RALC optimiser pushed to both caps, and the caps come
+straight from the risk preset + supplier capacity. Change the preset (Section 16) and these move.</p></div>
+
+<h3>10b - WHEN to buy: the timing DP &amp; holding cost</h3>
+<p>Cover% and hedge% say <b>how much</b>; a separate step decides <b>when</b>. A <b>dynamic program</b>
+(Wagner-Whitin) schedules buys on the weekly forward price path, charging a <b>holding cost</b> for anything
+bought early and respecting the lead time, then every plan is priced over the 20,000 paths and ranked on RALC.</p>
+<div class="calc"><div class="f">holding cost per week = monthly holding &divide; weeks-per-month</div><div class="s">= 1.25% &divide; 4.33</div><div class="r">= 0.289% per week</div><div class="note">Cost of carrying inventory early = finance + storage + insurance. Lead time = 6 weeks.</div></div>
+<div class="calc"><div class="f">cost of ordering at week b to consume at week u = price(b) &times; (1 + holding &times; weeks-held)</div><div class="s">the DP picks, for each demand week, the order week b that minimises this;</div><div class="s">if holding &gt; the forward carry, the cheapest b is 'just-in-time' (order lead-time before need).</div><div class="r">= the optimal buy schedule</div><div class="note">This is the classic lot-sizing DP - it trades a cheaper (earlier) forward price against the cost of holding it.</div></div>
+<p>Each plan, priced over all 20,000 paths (so it carries real price risk), then compared on RALC:</p>
+<table><thead><tr><th>Plan</th><th>Type</th><th>E[cost] (Cr)</th><th>SD (Cr)</th><th>CaR95 (Cr)</th><th>RALC (Cr)</th></tr></thead><tbody>
+<tr class=""><td>Buy just-in-time</td><td>physical</td><td>514</td><td>31.9</td><td>568</td><td><b>539</b></td></tr><tr class=""><td>Buy now & hold</td><td>physical</td><td>528</td><td>0.0</td><td>528</td><td><b>528</b></td></tr><tr class=""><td>DP-optimal schedule</td><td>physical</td><td>514</td><td>31.9</td><td>568</td><td><b>539</b></td></tr><tr class="pick"><td>Hedge (lock forward)</td><td>hedge</td><td>527</td><td>0.0</td><td>527</td><td><b>527</b></td></tr>
+</tbody></table>
+<div class="callout"><b>Verdict: HEDGE.</b> The best physical plan
+("Buy now & hold") has RALC ₹528 Cr vs hedge
+₹527 Cr - the engine recommends the cheaper. This is exactly the trade-off:
+if (forward price you lock) &lt; (spot + holding cost of buying early), hedging wins; otherwise buy physical.
+Backwardated commodities (cheap forward) favour hedge; steeply-contango ones can tip to buy-and-hold.</div>
+
+<h2 id="s11">11. Risk numbers: E, SD, CaR95, and the "risk cut"</h2>
+<div class="kv">
+ <div><b>E[Cost] (average)</b><br>₹679.4 Cr</div>
+ <div><b>SD (uncertainty)</b><br>₹16.0 Cr</div>
+ <div><b>CaR95 (bad case)</b><br>₹703.0 Cr</div>
+ <div><b>do-nothing SD</b><br>₹50.7 Cr</div>
+</div>
+<div class="calc"><div class="f">risk cut = (1 &minus; engine SD &divide; do-nothing SD) &times; 100</div><div class="s">= (1 &minus; 16.0 &divide; 50.7) &times; 100</div><div class="r">= 68% less risk</div><div class="note">So the plan removes about 68% of the cost uncertainty vs just buying at spot.</div></div>
+<div class="callout"><b>CaR95 in words:</b> if we ran the next 6 months 100 times, only 5 of them would
+cost more than ₹703.0 Cr. It is the number the CFO cares about &mdash; the realistic bad case.</div>
+
+<h2 id="s12">12. Act &mdash; the guardrail check (auto-execute vs escalate)</h2>
+<p>The copilot may act on its own only if the immediate order is small enough to sit inside the council's cap.
+The immediate order is the <b>larger</b> of (the near-month covered slice) and (the mandatory must-cover from
+Section 5). For palm the supply-continuity must-cover drives it:</p>
+<div class="calc"><div class="f">immediate order = max( cover-slice , must-cover-now ) &times; lock price</div><div class="s">cover-slice = 60% &times; 7,757 t/mo = 4,654 t</div><div class="s">must-cover-now (Section 5) = 3,434 t &nbsp;&#8592; larger, so it wins</div><div class="s">= 3,434 t &times; ₹146,511</div><div class="r">= ₹68.2 Cr</div></div>
+<div class="warn"><b>Check:</b> order ₹68.2 Cr vs auto-execute cap
+₹40 Cr &#8594; order is bigger &#8594; <b>ESCALATE TO COUNCIL</b>.
+The engine does not self-trade this; it sends it to the council with the rationale. (Crude &amp; silver orders
+are smaller than their caps, so those auto-execute.)</div>
+
+<h2 id="s13">13. Backtest &mdash; would this have helped on real history?</h2>
+<p>We replay the last year of actual prices and compare two cost lines: buying everything at spot ("naive")
+vs the engine's cover-and-hedge plan. We measure the <b>month-to-month wobble (std-dev)</b> of each:</p>
+<div class="kv">
+ <div><b>Naive cost wobble</b><br>₹7,062 / tonne</div>
+ <div><b>Engine cost wobble</b><br>₹4,759 / tonne</div>
+</div>
+<div class="calc"><div class="f">steadier by = (1 &minus; engine wobble &divide; naive wobble) &times; 100</div><div class="s">= (1 &minus; 4,759 &divide; 7,062) &times; 100</div><div class="r">= 33% steadier</div><div class="note">...at about the same average cost (-0.4%). So the smoothing was essentially free.</div></div>
+
+<h2 id="s14">14. Portfolio &mdash; correlation &amp; the natural-hedge benefit</h2>
+<p>Because the three commodities do not move together, buying them as one portfolio cancels some risk.
+First, how much each pair moves together (correlation, &minus;1 to +1):</p>
+<table style="width:auto"><tbody><tr><td></td><th>Palm</th><th>Crude</th><th>Silver</th></tr><tr><th style="text-align:left">Palm</th><td>+1.00</td><td>+0.38</td><td>+0.01</td></tr><tr><th style="text-align:left">Crude</th><td>+0.38</td><td>+1.00</td><td>-0.09</td></tr><tr><th style="text-align:left">Silver</th><td>+0.01</td><td>-0.09</td><td>+1.00</td></tr></tbody></table>
+<p>Each commodity's own risk (SD): palm 16.0, crude 17.6, silver 9.5 (₹ Cr).</p>
+<div class="calc"><div class="f">if risks simply ADDED = SD&#8321; + SD&#8322; + SD&#8323;</div><div class="s">= 16.0 + 17.6 + 9.5</div><div class="r">= ₹43.1 Cr</div></div>
+<div class="calc"><div class="f">real portfolio risk = &radic;( SD-vector &times; correlation-matrix &times; SD-vector )</div><div class="s">(the standard formula that accounts for how they move together)</div><div class="r">= ₹29.0 Cr</div></div>
+<div class="calc"><div class="f">natural-hedge benefit = (1 &minus; real &divide; added-up) &times; 100</div><div class="s">= (1 &minus; 29.0 &divide; 43.1) &times; 100</div><div class="r">= 33% lower risk</div><div class="note">This risk reduction is free - it comes purely from managing the commodities together, not in silos.</div></div>
+
+<h2 id="s15">15. Where exactly the AI / LLM is used (and where it is NOT)</h2>
+<p>Important for a defensible pitch: <b>the AI does not invent the numbers.</b> The pricing maths
+(RALC, Monte-Carlo, the frontier) stays a transparent, auditable engine. The AI sits <i>around</i> it &mdash;
+turning messy real-world text into structured, cited inputs, then explaining, drafting and executing inside
+hard limits. Every touchpoint:</p>
+<table><thead><tr><th>Stage</th><th>AI component</th><th>Technique</th><th>Reads</th><th>Produces</th></tr></thead><tbody>
+<tr><td><b>Sense</b></td><td>Market sensing</td><td><b>LLM</b></td><td>News, MPOB/USDA reports, export-duty notices, weather &amp; port advisories</td><td>A fundamentals bias per commodity, each with a cited reason an analyst can check</td></tr>
+<tr><td><b>Sense</b></td><td>Document extraction</td><td><b>LLM</b></td><td>Supplier contracts, invoices, customs docs, ERP demand files</td><td>Structured inventory / lead-time / demand fields (feeds Section 5)</td></tr>
+<tr><td><b>Score</b></td><td>&mdash; none (on purpose)</td><td>Rules</td><td>The 6 signals</td><td>The 0-100 score by a fixed formula &mdash; kept auditable</td></tr>
+<tr><td><b>Decide</b></td><td>Scenario forecasting</td><td><b>ML</b> (+LLM)</td><td>Price/vol history + the event read</td><td>Probabilities for the price paths (upgrades the plain random walk)</td></tr>
+<tr><td><b>Decide</b></td><td>Anomaly detection</td><td><b>ML</b></td><td>Live price, FX, freight, basis</td><td>Flags an odd move &amp; auto-fires the matching trigger</td></tr>
+<tr><td><b>Act</b></td><td>Agentic execution</td><td><b>LLM agent</b></td><td>The chosen plan + the caps</td><td>Drafts the order, checks guardrails, auto-executes in caps or writes the escalation memo</td></tr>
+<tr><td><b>All</b></td><td>Natural-language Q&amp;A</td><td><b>LLM</b></td><td>A plain question + the live model</td><td>"Margin if palm +10% &amp; rupee -3%?" &#8594; runs the model &amp; explains; writes memos/briefs</td></tr>
+<tr><td><b>Monitor</b></td><td>Learning loop</td><td>ML + <b>LLM</b></td><td>Monthly back-test vs actuals</td><td>Summarises hits/misses &amp; proposes weight/trigger tweaks (human sign-off)</td></tr>
+</tbody></table>
+<div class="callout"><b>The rule that makes it trustworthy:</b> the LLM converts <i>text &#8594; structured, cited
+input</i> and drafts/explains/executes &mdash; it never sets a price or overrides a guardrail. So you get AI's
+reach over messy information <b>plus</b> a fully auditable number engine. That is why the SCORE step is
+deliberately left as fixed rules, not an LLM.</div>
+
+<h2 id="s16">16. Every assumption we made (register)</h2>
+<p class="muted">These are the inputs we chose (not read from market data). Change any of them at the top of
+<code>commodity_copilot.py</code> and every number above updates.</p>
+<table><thead><tr><th>Assumption</th><th>Value</th><th>Why / note</th></tr></thead><tbody>
+<tr><td>Annual demand (flagship)</td><td>114,950 units</td><td><b>From the real sales file</b> (crude/silver still illustrative).</td></tr>
+<tr><td>Demand volatility (flagship)</td><td>CV 21%</td><td><b>From the real sales file</b>; sizes the safety stock.</td></tr>
+<tr><td>Inventory on hand (palm)</td><td>15,000 t (~1.5 months)</td><td>Netted off demand to get net procurement.</td></tr>
+<tr><td>Safety stock (flagship)</td><td>1.65 &times; CV &times; demand &times; &radic;lead</td><td>Sized from the real demand volatility (95% service).</td></tr>
+<tr><td>Supplier forward capacity</td><td>80% (palm)</td><td>Max share suppliers commit &#8594; caps how much we can lock.</td></tr>
+<tr><td>Lead time</td><td>1.5 months</td><td>Order &#8594; ship &#8594; arrive; sets the reorder point.</td></tr>
+<tr><td>Planning horizon</td><td>6 months</td><td>Rolling window, re-solved weekly.</td></tr>
+<tr><td>Import duty (palm)</td><td>27.5%</td><td>Illustrative India CPO duty.</td></tr>
+<tr><td>Base freight</td><td>$35 / tonne</td><td>Scaled by the Baltic Dry Index.</td></tr>
+<tr><td>Buy-Now weights</td><td>Value 35 / Momentum 20 / Curve 25 / FX 20</td><td>Chosen importance of each signal.</td></tr>
+<tr><td>Price drift in Monte-Carlo</td><td>0 (martingale)</td><td>We do not assume we can predict direction.</td></tr>
+<tr><td>Monte-Carlo paths</td><td>20,000</td><td>More paths = smoother numbers.</td></tr>
+<tr><td>Option premium factor</td><td>0.4 &times; &sigma; &times; &radic;T</td><td>Standard at-the-money rule of thumb.</td></tr>
+<tr><td>&lambda; (risk aversion)</td><td>1.5 / 0.8 / 0.3</td><td>Conservative / Balanced / Aggressive presets.</td></tr>
+<tr><td>Coverage &amp; hedge caps</td><td>see the 3-preset table</td><td>Hard limits the autonomy stays inside.</td></tr>
+</tbody></table>
+
+<div class="callout"><b>Bottom line:</b> every rupee figure in the slides and the explainer can be traced,
+step by step, from the raw Excel prices through Sections 4&ndash;14 above. Nothing is a black box.</div>
+
+<p class="foot">Generated by copilot_audit.py from the project data files. Snapshot 2026-07-23.
+Illustrative decision-support tool &mdash; not financial advice.</p>
+</div></body></html>

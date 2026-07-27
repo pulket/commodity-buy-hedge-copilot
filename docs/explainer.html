@@ -1,0 +1,236 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commodity Copilot - model explained</title><style>
+*{box-sizing:border-box}
+body{margin:0;background:#f6f7fb;color:#20222b;font:15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:920px;margin:0 auto;padding:26px 20px 80px}
+h1{font-size:26px;margin:0 0 4px}
+h2{font-size:19px;margin:34px 0 8px;padding-top:12px;border-top:2px solid #ececf2}
+h3{font-size:15px;margin:16px 0 6px;color:#7823dc}
+.sub{color:#6b7280;margin:0 0 16px}
+.card{background:#fff;border:1px solid #e4e2ec;border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.buy{background:#dcfce7;color:#15803d}.wait{background:#fee2e2;color:#c0243b}.phase{background:#fef3c7;color:#b45309}.hedge{background:#ebdffb;color:#4c1d95}
+.big{font-size:32px;font-weight:800;line-height:1;color:#4c1d95}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:#fff;border:1px solid #e4e2ec;border-radius:10px;padding:11px 13px}
+.kpi .l{font-size:10.5px;color:#6b7280;text-transform:uppercase;letter-spacing:.03em}
+.kpi .v{font-size:19px;font-weight:800;margin-top:2px;color:#4c1d95}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0}
+th,td{padding:7px 9px;text-align:right;border-bottom:1px solid #eef0f4}
+th:first-child,td:first-child{text-align:left}
+thead th{background:#f5eefd;color:#4c1d95;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em}
+.corr{width:auto}.corr th,.corr td{text-align:center;padding:6px 12px;border:1px solid #eef0f4;font-size:12px}
+.muted{color:#6b7280}.chart-wrap{overflow-x:auto}
+.step{display:flex;gap:12px;align-items:flex-start;margin:8px 0}
+.num{flex:0 0 26px;height:26px;border-radius:50%;background:#7823dc;color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.callout{background:#f5eefd;border:1px solid #d8b8fb;border-radius:10px;padding:12px 15px;margin:12px 0}
+.math{background:#faf7ff;border:1px solid #e4d3fb;border-radius:8px;padding:10px 14px;font-size:14px}
+code{background:#f3f4f8;border:1px solid #e4e2ec;padding:1px 5px;border-radius:4px;font-size:12.5px}
+.trg{border-left:3px solid #7823dc;padding:5px 0 5px 12px;margin:7px 0;font-size:13.5px}
+.foot{color:#6b7280;font-size:12px;margin-top:26px;text-align:center}
+.tag{font-size:11px;color:#6b7280}
+</style></head><body><div class="wrap">
+
+<h1>Commodity Copilot - how the model works</h1>
+<p class="sub">A transparent <b>Sense &#8594; Score &#8594; Decide &#8594; Act</b> engine that decides
+<b>what, when, how much, and whether to hedge</b> across a basket of commodities - and acts inside
+guardrails. Worked example below: <b>Palm oil (CPO)</b> (imported India &#8592; Malaysia), plus crude &amp; silver.</p>
+
+<div class="card">
+ <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;align-items:center">
+  <div><div class="tag">FLAGSHIP PLAN TODAY (Palm oil (CPO)) &mdash; % of net requirement</div>
+   <div class="big">60% locked &#183; 20% option &#183; 20% float</div>
+   <div class="tag" style="margin-top:2px">(= 100%; "locked" = physical forwards, "option" = price caps)</div>
+   <div style="margin-top:8px"><span class="pill phase">PHASE IN</span>
+    <span class="pill hedge">ESCALATE TO COUNCIL</span></div></div>
+  <div style="text-align:right"><div class="tag">RISK CUT vs BUYING BLINDLY</div>
+   <div class="big" style="color:#15803d">-68%</div>
+   <div class="tag" style="margin-top:6px">cost volatility, at ~equal expected cost<br>(insurance, not a discount)</div></div>
+ </div>
+</div>
+
+<div class="grid">
+ <div class="kpi"><div class="l">Portfolio 6-mo spend</div><div class="v">₹1,066 Cr</div></div>
+ <div class="kpi"><div class="l">Risk (added up)</div><div class="v">₹43 Cr</div></div>
+ <div class="kpi"><div class="l">Risk (netted)</div><div class="v">₹29 Cr</div></div>
+ <div class="kpi"><div class="l">Natural-hedge benefit</div><div class="v">33%</div></div>
+ <div class="kpi"><div class="l">Monte-Carlo paths</div><div class="v">20,000</div></div>
+</div>
+
+<h2>1. What's different from a simple rule</h2>
+<p>Instead of a rule of thumb, the engine <b>simulates thousands of possible price futures</b>
+and picks the buy/hedge mix that is best on a metric combining <b>cost AND stability</b>. It runs
+this for every commodity, then nets the risks across the portfolio. Four stages:</p>
+<div class="card">
+ <div class="step"><div class="num">S</div><div><b>Sense</b> - read the market for each commodity: 6 signals from price, curve, FX &amp; freight.</div></div>
+ <div class="step"><div class="num">S</div><div><b>Score</b> - turn signals into a 0-100 Buy-Now score (buy / phase / wait).</div></div>
+ <div class="step"><div class="num">D</div><div><b>Decide</b> - Monte-Carlo the cost of every candidate strategy and pick the one that minimises <b>RALC</b> (below), inside the appetite caps.</div></div>
+ <div class="step"><div class="num">A</div><div><b>Act</b> - auto-execute if the order sits inside the council's guardrails, otherwise escalate.</div></div>
+</div>
+
+<h2>2. The whole basket at a glance</h2>
+<div class="chart-wrap"><table>
+ <thead><tr><th>Commodity</th><th>Spot</th><th>%ile</th><th>Vol</th><th>Curve</th><th>Buy-now</th><th>Plan (=100% of net need)</th><th>Risk cut</th><th>Act</th></tr></thead>
+ <tbody><tr><td><b>Palm oil (CPO) ★</b></td><td>4,596 MYR</td><td>95</td><td>17%</td><td>+4.3%</td><td><span class="pill phase">PHASE IN</span></td><td style="font-size:11.5px">60% locked &#183; 20% option &#183; 20% float</td><td>-68%</td><td>ESCALATE</td></tr><tr><td><b>Crude oil (Brent)</b></td><td>99 USD</td><td>82</td><td>54%</td><td>-15.8%</td><td><span class="pill wait">WAIT</span></td><td style="font-size:11.5px">60% locked &#183; 20% option &#183; 20% float</td><td>-74%</td><td>AUTO</td></tr><tr><td><b>Silver</b></td><td>58 USD</td><td>38</td><td>53%</td><td>+7.5%</td><td><span class="pill buy">BUY NOW</span></td><td style="font-size:11.5px">60% locked &#183; 20% option &#183; 20% float</td><td>-71%</td><td>AUTO</td></tr></tbody></table></div>
+<p class="muted">Notice the engine adapts per commodity: palm is expensive &amp; contango &#8594; phase in;
+crude is in backwardation (you're <i>paid</i> to lock) &#8594; cover even though timing says wait;
+silver is cheap-ish but very volatile &#8594; buy &amp; hedge.</p>
+
+<h2>3. Supply chain &mdash; from demand to how much we ACTUALLY buy</h2>
+<p>Price is only half the story. Before pricing anything, the engine turns <b>demand, inventory, lead time
+and supplier limits</b> into the real volume to source &mdash; and the non-negotiable "must-buy-now"
+quantity that protects supply continuity. <b>Demand and its volatility are read from the company's real sales
+file</b> (~114,950 units/yr, demand swings <b>CV 21%</b>
+month-to-month) &mdash; not assumed. For <b>Palm oil (CPO)</b>:</p>
+<div class="chart-wrap"><table>
+ <thead><tr><th>Supply-chain step</th><th>Value</th><th>What it means</th></tr></thead><tbody>
+ <tr><td>Demand over 6 months</td><td>57,475 tonne</td><td>From the real sales run-rate (114,950/yr &divide; 2).</td></tr>
+ <tr><td>Inventory on hand</td><td>15,000 tonne</td><td>= 1.6 months of cover already in stock.</td></tr>
+ <tr><td>Safety stock (keep aside)</td><td>4,065 tonne</td><td>Sized from the real demand volatility (CV 21%), not a guess.</td></tr>
+ <tr><td>Usable inventory</td><td>10,935 tonne</td><td>Stock above safety we can burn down (inventory &minus; safety).</td></tr>
+ <tr><td><b>Net procurement</b></td><td><b>46,540 tonne</b></td><td>What we actually buy = demand &minus; usable inventory. <b>Every rupee figure uses this.</b></td></tr>
+ <tr><td>Reorder point</td><td>18,434 tonne</td><td>lead-time demand + safety. Below this &#8594; must reorder.</td></tr>
+ <tr><td><b>Must-cover now</b></td><td><b>3,434 tonne</b></td><td>Immediate mandatory buy to get back above the reorder point &mdash; regardless of price.</td></tr>
+ <tr><td>Suppliers / origins</td><td>4 &middot; Malaysia & Indonesia</td><td>Can forward-commit up to 80% of demand (a real cap on how much we can lock).</td></tr>
+</tbody></table></div>
+<div class="callout"><b>Why this matters:</b> the 15,000 tonne we already hold cuts the buy from
+57,475 to <b>46,540 tonne</b>. But cover is
+1.6 months and the reorder point is 18,434 tonne, so we are
+<b>below reorder</b> &mdash; the engine forces a mandatory <b>3,434 tonne</b> buy now
+to protect supply, <i>before</i> it starts optimising for price. Supplier capacity (80%)
+also caps how much we may physically lock.</div>
+
+<h2>4. Deep dive - Palm oil (CPO)</h2>
+
+<div class="step"><div class="num">S</div><div style="flex:1">
+ <h3 style="margin-top:2px">Sense - the 6 signals</h3>
+ <div class="chart-wrap"><table><thead><tr><th>Signal</th><th>Value</th><th>Meaning</th></tr></thead><tbody><tr><td>Spot</td><td>4,596 MYR/tonne</td><td class="muted" style="text-align:left">Today's price (nearest futures).</td></tr><tr><td>52-week range</td><td>3,892 - 4,745</td><td class="muted" style="text-align:left">Cheapest & dearest in a year.</td></tr><tr><td>Price percentile</td><td>95/100</td><td class="muted" style="text-align:left">0 = cheapest, 100 = dearest. Higher = expensive.</td></tr><tr><td>Momentum (~1m)</td><td>+0.5%</td><td class="muted" style="text-align:left">Recent direction.</td></tr><tr><td>Volatility (yr)</td><td>17%</td><td class="muted" style="text-align:left">How jumpy = how much risk.</td></tr><tr><td>6-month curve</td><td>+4.3%</td><td class="muted" style="text-align:left">+contango = costs to lock; -backwardation = paid to lock.</td></tr><tr><td>Landed cost</td><td>₹143,545/tonne</td><td class="muted" style="text-align:left">Price + FX + freight + duty. Hits the P&L.</td></tr></tbody></table></div>
+ <div class="chart-wrap"><svg viewBox="0 0 840 230" width="100%" style="max-width:820px"><line x1="34" y1="196.0" x2="686" y2="196.0" stroke="#E4E2EC"/><text x="2" y="199.0" font-size="9" fill="#6B7280">3,873</text><line x1="34" y1="155.5" x2="686" y2="155.5" stroke="#E4E2EC"/><text x="2" y="158.5" font-size="9" fill="#6B7280">4,097</text><line x1="34" y1="115.0" x2="686" y2="115.0" stroke="#E4E2EC"/><text x="2" y="118.0" font-size="9" fill="#6B7280">4,321</text><line x1="34" y1="74.5" x2="686" y2="74.5" stroke="#E4E2EC"/><text x="2" y="77.5" font-size="9" fill="#6B7280">4,545</text><line x1="34" y1="34.0" x2="686" y2="34.0" stroke="#E4E2EC"/><text x="2" y="37.0" font-size="9" fill="#6B7280">4,769</text>
+      <polygon points="34,196 34.0,160.3 36.6,153.3 39.2,153.3 41.8,144.4 44.4,148.0 47.0,125.6 49.6,141.5 52.2,137.5 54.8,128.9 57.4,126.1 60.0,133.0 62.6,145.8 65.2,139.0 67.8,135.2 70.4,141.3 73.0,138.1 75.6,143.0 78.2,127.8 80.8,133.2 83.4,136.4 86.0,134.3 88.5,112.6 91.1,111.0 93.7,106.6 96.3,111.9 98.9,111.9 101.5,86.9 104.1,91.8 106.7,96.3 109.3,102.3 111.9,91.1 114.5,98.3 117.1,101.2 119.7,98.5 122.3,105.2 124.9,117.3 127.5,103.7 130.1,107.5 132.7,105.9 135.3,100.8 137.9,102.8 140.5,111.5 143.1,103.7 145.7,103.7 148.3,98.1 150.9,106.4 153.5,107.0 156.1,103.7 158.7,118.0 161.3,113.1 163.9,107.0 166.5,114.9 169.1,115.3 171.7,117.8 174.3,108.1 176.9,98.7 179.5,100.7 182.1,103.4 184.7,99.6 187.3,88.4 189.9,81.5 192.5,88.4 195.1,97.0 197.6,109.7 200.2,118.7 202.8,95.0 205.4,93.6 208.0,92.2 210.6,100.5 213.2,96.1 215.8,103.9 218.4,112.4 221.0,121.6 223.6,134.6 226.2,133.7 228.8,139.5 231.4,156.9 234.0,153.1 236.6,159.4 239.2,152.4 241.8,158.5 244.4,158.5 247.0,160.7 249.6,180.7 252.2,184.7 254.8,184.7 257.4,151.6 260.0,141.1 262.6,140.8 265.2,152.7 267.8,163.9 270.4,165.5 273.0,177.7 275.6,173.3 278.2,163.9 280.8,155.1 283.4,162.1 286.0,155.6 288.6,156.7 291.2,161.2 293.8,155.8 296.4,163.0 299.0,167.4 301.6,173.0 304.2,171.2 306.7,176.6 309.3,173.0 311.9,182.5 314.5,181.8 317.1,180.2 319.7,192.5 322.3,177.8 324.9,171.2 327.5,171.2 330.1,162.1 332.7,171.3 335.3,168.1 337.9,173.3 340.5,181.3 343.1,182.0 345.7,186.0 348.3,180.2 350.9,175.7 353.5,182.0 356.1,176.6 358.7,179.3 361.3,182.0 363.9,182.0 366.5,168.3 369.1,167.2 371.7,161.0 374.3,152.7 376.9,147.3 379.5,149.8 382.1,141.9 384.7,140.1 387.3,137.2 389.9,133.2 392.5,144.0 395.1,147.7 397.7,147.5 400.3,151.1 402.9,158.1 405.5,154.9 408.1,166.1 410.7,172.4 413.3,176.9 415.8,182.0 418.4,170.6 421.0,156.1 423.6,161.6 426.2,163.7 428.8,169.9 431.4,169.7 434.0,181.1 436.6,174.9 439.2,162.5 441.8,158.5 444.4,160.1 447.0,155.6 449.6,127.8 452.2,90.9 454.8,116.6 457.4,103.4 460.0,96.1 462.6,78.1 465.2,60.2 467.8,75.0 470.4,82.2 473.0,68.1 475.6,82.0 478.2,92.5 480.8,82.4 483.4,75.3 486.0,52.6 488.6,41.2 491.2,52.7 493.8,49.1 496.4,38.3 499.0,39.2 501.6,48.1 504.2,79.3 506.8,69.7 509.4,84.2 512.0,91.6 514.6,108.1 517.2,92.9 519.8,103.2 522.4,90.7 524.9,84.2 527.5,73.7 530.1,81.7 532.7,79.5 535.3,88.9 537.9,88.4 540.5,81.7 543.1,81.9 545.7,72.8 548.3,56.9 550.9,77.7 553.5,84.2 556.1,86.6 558.7,83.5 561.3,91.4 563.9,102.5 566.5,109.7 569.1,104.3 571.7,84.2 574.3,75.3 576.9,79.9 579.5,100.1 582.1,95.2 584.7,98.8 587.3,95.4 589.9,89.4 592.5,88.0 595.1,63.6 597.7,77.0 600.3,84.0 602.9,81.7 605.5,90.9 608.1,91.6 610.7,89.6 613.3,103.0 615.9,99.6 618.5,82.4 621.1,80.8 623.7,65.6 626.3,62.7 628.9,64.5 631.5,69.0 634.0,80.2 636.6,81.9 639.2,78.4 641.8,87.3 644.4,85.3 647.0,92.5 649.6,93.6 652.2,85.3 654.8,85.6 657.4,82.0 660.0,85.8 662.6,90.7 665.2,87.6 667.8,79.9 670.4,79.0 673.0,75.9 675.6,77.3 678.2,70.3 680.8,76.2 683.4,77.2 686.0,65.2 686,196" fill="#7823DC" opacity="0.07"/>
+      <polyline points="34.0,160.3 36.6,153.3 39.2,153.3 41.8,144.4 44.4,148.0 47.0,125.6 49.6,141.5 52.2,137.5 54.8,128.9 57.4,126.1 60.0,133.0 62.6,145.8 65.2,139.0 67.8,135.2 70.4,141.3 73.0,138.1 75.6,143.0 78.2,127.8 80.8,133.2 83.4,136.4 86.0,134.3 88.5,112.6 91.1,111.0 93.7,106.6 96.3,111.9 98.9,111.9 101.5,86.9 104.1,91.8 106.7,96.3 109.3,102.3 111.9,91.1 114.5,98.3 117.1,101.2 119.7,98.5 122.3,105.2 124.9,117.3 127.5,103.7 130.1,107.5 132.7,105.9 135.3,100.8 137.9,102.8 140.5,111.5 143.1,103.7 145.7,103.7 148.3,98.1 150.9,106.4 153.5,107.0 156.1,103.7 158.7,118.0 161.3,113.1 163.9,107.0 166.5,114.9 169.1,115.3 171.7,117.8 174.3,108.1 176.9,98.7 179.5,100.7 182.1,103.4 184.7,99.6 187.3,88.4 189.9,81.5 192.5,88.4 195.1,97.0 197.6,109.7 200.2,118.7 202.8,95.0 205.4,93.6 208.0,92.2 210.6,100.5 213.2,96.1 215.8,103.9 218.4,112.4 221.0,121.6 223.6,134.6 226.2,133.7 228.8,139.5 231.4,156.9 234.0,153.1 236.6,159.4 239.2,152.4 241.8,158.5 244.4,158.5 247.0,160.7 249.6,180.7 252.2,184.7 254.8,184.7 257.4,151.6 260.0,141.1 262.6,140.8 265.2,152.7 267.8,163.9 270.4,165.5 273.0,177.7 275.6,173.3 278.2,163.9 280.8,155.1 283.4,162.1 286.0,155.6 288.6,156.7 291.2,161.2 293.8,155.8 296.4,163.0 299.0,167.4 301.6,173.0 304.2,171.2 306.7,176.6 309.3,173.0 311.9,182.5 314.5,181.8 317.1,180.2 319.7,192.5 322.3,177.8 324.9,171.2 327.5,171.2 330.1,162.1 332.7,171.3 335.3,168.1 337.9,173.3 340.5,181.3 343.1,182.0 345.7,186.0 348.3,180.2 350.9,175.7 353.5,182.0 356.1,176.6 358.7,179.3 361.3,182.0 363.9,182.0 366.5,168.3 369.1,167.2 371.7,161.0 374.3,152.7 376.9,147.3 379.5,149.8 382.1,141.9 384.7,140.1 387.3,137.2 389.9,133.2 392.5,144.0 395.1,147.7 397.7,147.5 400.3,151.1 402.9,158.1 405.5,154.9 408.1,166.1 410.7,172.4 413.3,176.9 415.8,182.0 418.4,170.6 421.0,156.1 423.6,161.6 426.2,163.7 428.8,169.9 431.4,169.7 434.0,181.1 436.6,174.9 439.2,162.5 441.8,158.5 444.4,160.1 447.0,155.6 449.6,127.8 452.2,90.9 454.8,116.6 457.4,103.4 460.0,96.1 462.6,78.1 465.2,60.2 467.8,75.0 470.4,82.2 473.0,68.1 475.6,82.0 478.2,92.5 480.8,82.4 483.4,75.3 486.0,52.6 488.6,41.2 491.2,52.7 493.8,49.1 496.4,38.3 499.0,39.2 501.6,48.1 504.2,79.3 506.8,69.7 509.4,84.2 512.0,91.6 514.6,108.1 517.2,92.9 519.8,103.2 522.4,90.7 524.9,84.2 527.5,73.7 530.1,81.7 532.7,79.5 535.3,88.9 537.9,88.4 540.5,81.7 543.1,81.9 545.7,72.8 548.3,56.9 550.9,77.7 553.5,84.2 556.1,86.6 558.7,83.5 561.3,91.4 563.9,102.5 566.5,109.7 569.1,104.3 571.7,84.2 574.3,75.3 576.9,79.9 579.5,100.1 582.1,95.2 584.7,98.8 587.3,95.4 589.9,89.4 592.5,88.0 595.1,63.6 597.7,77.0 600.3,84.0 602.9,81.7 605.5,90.9 608.1,91.6 610.7,89.6 613.3,103.0 615.9,99.6 618.5,82.4 621.1,80.8 623.7,65.6 626.3,62.7 628.9,64.5 631.5,69.0 634.0,80.2 636.6,81.9 639.2,78.4 641.8,87.3 644.4,85.3 647.0,92.5 649.6,93.6 652.2,85.3 654.8,85.6 657.4,82.0 660.0,85.8 662.6,90.7 665.2,87.6 667.8,79.9 670.4,79.0 673.0,75.9 675.6,77.3 678.2,70.3 680.8,76.2 683.4,77.2 686.0,65.2" fill="none" stroke="#7823DC" stroke-width="2"/>
+      <line x1="34" y1="153.9" x2="686" y2="153.9" stroke="#15803D" stroke-width="1.2" stroke-dasharray="4,4"/><text x="689" y="156.9" font-size="10" fill="#15803D">buy trigger 4,105</text><line x1="34" y1="76.8" x2="686" y2="76.8" stroke="#B45309" stroke-width="1.2" stroke-dasharray="4,4"/><text x="689" y="79.8" font-size="10" fill="#B45309">slow-buy 4,532</text>
+      <circle cx="686.0" cy="65.2" r="4" fill="#7823DC"/>
+      <text x="682.0" y="57.2" font-size="10" fill="#7823DC" text-anchor="end">now 4,596 MYR</text>
+      <text x="34" y="222" font-size="9" fill="#6B7280">2025-07-11</text>
+      <text x="686" y="222" font-size="9" fill="#6B7280" text-anchor="end">2026-07-23</text></svg></div>
+</div></div>
+
+<div class="step"><div class="num">S</div><div style="flex:1">
+ <h3>Score - buy now, phase, or wait?</h3>
+ <p>Four sub-scores blend into one Buy-Now score. Above 60 buy, 45-60 phase, below 45 wait.</p>
+ <div class="chart-wrap"><svg viewBox="0 0 570 154" width="100%" style="max-width:640px"><text x="0" y="23" font-size="11" fill="#20222B">Value (cheap?)</text><rect x="150" y="12" width="315" height="16" rx="3" fill="#E4E2EC"/><rect x="150" y="12" width="15" height="16" rx="3" fill="#6B7280"/><text x="473" y="24" font-size="10" fill="#6B7280">5 (w35%)</text><text x="0" y="53" font-size="11" fill="#20222B">Momentum (rising?)</text><rect x="150" y="42" width="315" height="16" rx="3" fill="#E4E2EC"/><rect x="150" y="42" width="172" height="16" rx="3" fill="#7823DC"/><text x="473" y="54" font-size="10" fill="#6B7280">55 (w20%)</text><text x="0" y="83" font-size="11" fill="#20222B">Curve (contango?)</text><rect x="150" y="72" width="315" height="16" rx="3" fill="#E4E2EC"/><rect x="150" y="72" width="293" height="16" rx="3" fill="#7823DC"/><text x="473" y="84" font-size="10" fill="#6B7280">93 (w25%)</text><text x="0" y="113" font-size="11" fill="#20222B">FX (rupee weaker?)</text><rect x="150" y="102" width="315" height="16" rx="3" fill="#E4E2EC"/><rect x="150" y="102" width="219" height="16" rx="3" fill="#7823DC"/><text x="473" y="114" font-size="10" fill="#6B7280">69 (w20%)</text><line x1="307.5" y1="6" x2="307.5" y2="128" stroke="#B45309" stroke-dasharray="3,3"/><text x="307.5" y="142" font-size="9" fill="#B45309" text-anchor="middle">neutral = 50</text></svg></div>
+ <p class="muted">Blended score = <b>50/100 &#8594; PHASE IN</b>. Palm is dear (low value)
+ but contango &amp; a weak rupee push toward securing supply - hence "phase in", not "wait".</p>
+</div></div>
+
+<div class="step"><div class="num">D</div><div style="flex:1">
+ <h3>Decide - the RALC metric and the efficient frontier</h3>
+ <p>You asked for a metric that balances <b>cost</b> and <b>stability</b>. The engine minimises:</p>
+ <div class="math"><b>RALC = E[Cost] + &#955; &#215; SD[Cost]</b><br>
+  <span class="muted">expected cost + a penalty on how much that cost can swing.
+  &#955; (risk-aversion) = <b>0.8</b> for the "balanced" preset
+  (Conservative 1.5 &#183; Balanced 0.8 &#183; Aggressive 0.3).</span></div>
+ <p>Each dot below is one candidate strategy (a cover% &#215; hedge% mix), scored by Monte-Carlo on
+ <b>expected cost</b> (left = cheaper) vs <b>risk</b> (down = steadier). The purple line is the
+ <b>efficient frontier</b> - the best you can do. The engine picks the frontier point that matches
+ the appetite's &#955;.</p>
+ <div class="chart-wrap"><svg viewBox="0 0 560 300" width="100%" style="max-width:600px"><line x1="46" y1="254" x2="514" y2="254" stroke="#20222B"/><line x1="46" y1="40" x2="46" y2="254" stroke="#20222B"/><text x="280.0" y="292" font-size="10" fill="#6B7280" text-anchor="middle">Expected cost (₹ Cr) → cheaper is left</text><text x="12" y="32" font-size="10" fill="#6B7280">Risk = cost volatility (₹ Cr)</text><circle cx="69.7" cy="61.4" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="215.3" cy="82.2" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="361.0" cy="101.7" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="170.9" cy="99.9" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="287.4" cy="116.5" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="403.9" cy="132.2" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="272.1" cy="138.4" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="359.5" cy="150.9" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="446.9" cy="162.6" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="373.4" cy="177.0" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="431.6" cy="185.3" r="3.2" fill="#6B7280" opacity="0.5"/><circle cx="489.9" cy="193.1" r="3.2" fill="#6B7280" opacity="0.5"/><polyline points="69.7,61.4 170.9,99.9 272.1,138.4 359.5,150.9 373.4,177.0 431.6,185.3 489.9,193.1" fill="none" stroke="#7823DC" stroke-width="2" opacity="0.7"/><circle cx="69.7" cy="61.4" r="4" fill="#7823DC"/><circle cx="170.9" cy="99.9" r="4" fill="#7823DC"/><circle cx="272.1" cy="138.4" r="4" fill="#7823DC"/><circle cx="359.5" cy="150.9" r="4" fill="#7823DC"/><circle cx="373.4" cy="177.0" r="4" fill="#7823DC"/><circle cx="431.6" cy="185.3" r="4" fill="#7823DC"/><circle cx="489.9" cy="193.1" r="4" fill="#7823DC"/><circle cx="69.7" cy="61.4" r="6" fill="#C0243B"/><text x="77.7" y="65.4" font-size="10" fill="#C0243B">do-nothing (all float)</text><circle cx="489.9" cy="193.1" r="7" fill="#15803D" stroke="#fff" stroke-width="1.5"/><text x="489.9" y="182.1" font-size="10.5" fill="#15803D" text-anchor="middle" font-weight="700">engine pick</text></svg></div>
+ <div class="callout"><b>The chosen plan &mdash; and why it is 100%, not 110%.</b> The engine picks
+  <b>cover = 60%</b> and <b>hedge = 50%</b>. But "hedge 50%"
+  means 50% <i>of the un-locked 40%</i>, not of the total. So the real
+  split of the net requirement is:
+  <ul style="margin:6px 0">
+   <li><b>60% locked</b> now via physical forwards (= cover 60%)</li>
+   <li><b>20% option-hedged</b> (= 50% &times; the remaining 40%)</li>
+   <li><b>20% left floating</b> (the rest of the remaining 40%)</li>
+  </ul>
+  <b>60 + 20 + 20 = 100%.</b></div>
+ <p class="muted"><b>Why 60% &amp; 50% exactly?</b> Both hit the
+  "balanced" preset's caps &mdash; the optimiser wanted to reduce risk further, but the caps stop it:
+  cover is limited to 60% (the smaller of the appetite cap 60%
+  and what suppliers will commit, 80%) and hedge to 50%.
+  Result: E[cost] ₹679 Cr, risk ₹16.0 Cr, CaR95 ₹703 Cr.
+  Instrument: Physical forwards (cover) + call options/caps (hedge).</p>
+
+ <h3>The pay-off distribution (why it's insurance)</h3>
+ <p>Running 20,000 price futures gives the full range of possible total cost. Do-nothing (red) has a
+ long expensive tail; the engine plan (purple) is far tighter - a much lower <b>worst case (CaR95)</b>.</p>
+ <div class="chart-wrap"><svg viewBox="0 0 560 240" width="100%" style="max-width:600px"><line x1="40" y1="200" x2="520" y2="200" stroke="#20222B"/><polygon points="40.0,200 40.0,199.8 56.6,199.8 73.1,199.1 89.7,197.7 106.3,195.6 122.8,190.9 139.4,185.1 155.8,179.2 172.5,169.6 188.9,159.7 205.5,156.2 222.1,150.7 238.6,150.5 255.2,152.1 271.7,157.4 288.3,165.9 304.8,170.9 321.4,177.9 337.9,186.1 354.5,189.0 371.1,192.7 387.5,195.5 404.2,197.4 420.6,198.0 437.2,198.9 453.7,199.4 470.3,199.7 486.9,199.8 503.4,200.0 520.0,200.0 520.0,200" fill="#C0243B" opacity="0.1"/><polyline points="40.0,199.8 56.6,199.8 73.1,199.1 89.7,197.7 106.3,195.6 122.8,190.9 139.4,185.1 155.8,179.2 172.5,169.6 188.9,159.7 205.5,156.2 222.1,150.7 238.6,150.5 255.2,152.1 271.7,157.4 288.3,165.9 304.8,170.9 321.4,177.9 337.9,186.1 354.5,189.0 371.1,192.7 387.5,195.5 404.2,197.4 420.6,198.0 437.2,198.9 453.7,199.4 470.3,199.7 486.9,199.8 503.4,200.0 520.0,200.0" fill="none" stroke="#C0243B" stroke-width="1.8"/><polygon points="40.0,200 40.0,200.0 56.6,200.0 73.1,200.0 89.7,200.0 106.3,200.0 122.8,200.0 139.4,200.0 155.8,200.0 172.5,199.9 188.9,198.7 205.5,188.9 222.1,158.6 238.6,106.4 255.2,64.6 271.7,54.5 288.3,148.5 304.8,194.2 321.4,199.9 337.9,200.0 354.5,200.0 371.1,200.0 387.5,200.0 404.2,200.0 420.6,200.0 437.2,200.0 453.7,200.0 470.3,200.0 486.9,200.0 503.4,200.0 520.0,200.0 520.0,200" fill="#7823DC" opacity="0.16"/><polyline points="40.0,200.0 56.6,200.0 73.1,200.0 89.7,200.0 106.3,200.0 122.8,200.0 139.4,200.0 155.8,200.0 172.5,199.9 188.9,198.7 205.5,188.9 222.1,158.6 238.6,106.4 255.2,64.6 271.7,54.5 288.3,148.5 304.8,194.2 321.4,199.9 337.9,200.0 354.5,200.0 371.1,200.0 387.5,200.0 404.2,200.0 420.6,200.0 437.2,200.0 453.7,200.0 470.3,200.0 486.9,200.0 503.4,200.0 520.0,200.0" fill="none" stroke="#7823DC" stroke-width="1.8"/><line x1="287.0" y1="36" x2="287.0" y2="200" stroke="#4C1D95" stroke-dasharray="3,3"/><text x="287.0" y="34" font-size="9" fill="#4C1D95" text-anchor="middle">engine CaR95 ₹703</text><line x1="353.4" y1="36" x2="353.4" y2="200" stroke="#C0243B" stroke-dasharray="3,3"/><text x="353.4" y="46" font-size="9" fill="#C0243B" text-anchor="middle">do-nothing CaR95 ₹755</text><text x="40" y="232" font-size="9" fill="#6B7280">₹510 Cr</text><text x="520" y="232" font-size="9" fill="#6B7280" text-anchor="end">₹885 Cr</text><rect x="410" y="40" width="10" height="10" fill="#7823DC" opacity="0.5"/><text x="424" y="49" font-size="9.5" fill="#20222B">engine plan</text><rect x="410" y="54" width="10" height="10" fill="#C0243B" opacity="0.4"/><text x="424" y="63" font-size="9.5" fill="#20222B">do-nothing</text></svg></div>
+ <p class="muted">Do-nothing worst-case (95%) ₹755 Cr vs engine
+ ₹703 Cr - the plan trims the bad tail. Expected cost is about the same
+ (₹668 vs ₹679 Cr): you buy stability, not a discount.</p>
+
+ <h3>WHEN to buy - physical (with holding cost) vs hedge</h3>
+ <p>Cover% and hedge% answer <i>how much</i>; this answers <i>when</i>. A <b>dynamic program</b> schedules
+ buys week-by-week on the forward price path, charging a <b>holding cost of 1.25%/month</b>
+ (finance + storage + insurance) for anything bought early, and respecting the <b>6-week lead
+ time</b>. Each plan is then priced over the 20,000 paths (so it carries real price risk) and ranked on RALC.
+ The core trade-off is simple: <b>is the forward price you would lock cheaper than buying at spot and paying to
+ hold it?</b></p>
+ <div class="chart-wrap"><table><thead><tr><th>Plan</th><th>Type</th><th>E[cost]</th><th>Risk (SD)</th><th>CaR95</th><th>RALC</th></tr></thead><tbody>
+ <tr style="background:#fff"><td>Buy just-in-time</td><td>physical</td><td>₹514 Cr</td><td>₹31.9 Cr</td><td>₹568 Cr</td><td><b>₹539 Cr</b></td></tr><tr style="background:#fff"><td>Buy now & hold</td><td>physical</td><td>₹528 Cr</td><td>₹0.0 Cr</td><td>₹528 Cr</td><td><b>₹528 Cr</b></td></tr><tr style="background:#fff"><td>DP-optimal schedule</td><td>physical</td><td>₹514 Cr</td><td>₹31.9 Cr</td><td>₹568 Cr</td><td><b>₹539 Cr</b></td></tr><tr style="background:#eafaf0"><td>Hedge (lock forward)</td><td>hedge</td><td>₹527 Cr</td><td>₹0.0 Cr</td><td>₹527 Cr</td><td><b>₹527 Cr</b></td></tr>
+ </tbody></table></div>
+ <div class="callout"><b>Verdict for Palm oil (CPO): HEDGE.</b> Best physical plan
+ ("Buy now & hold") has RALC ₹528 Cr vs hedge
+ ₹527 Cr. Here holding cost (1.25%/mo) is larger
+ than the weekly forward carry, so the DP finds <b>just-in-time</b> is the best physical timing - buying early to
+ hold isn't worth it. The engine then picks whichever of best-physical vs hedge is cheaper on a risk-adjusted basis.
+ (Crude, in backwardation, favours hedge strongly; silver, in steeper contango, tips to buy-physical.)</div>
+</div></div>
+
+<div class="step"><div class="num">A</div><div style="flex:1">
+ <h3>Act - guardrails (auto-execute vs escalate)</h3>
+ <div class="callout">Near-term order = <b>₹68.2 Cr</b> &nbsp;|&nbsp;
+  auto-execute cap = <b>₹40 Cr</b> &nbsp;&#8594;&nbsp;
+  <b>ESCALATE TO COUNCIL</b><br><span class="muted">order size or hedge ratio exceeds the auto-execute cap.</span></div>
+ <h3>Trigger playbook</h3><div class="trg"><b>IF</b> price <= 4,105 MYR &nbsp;<b>THEN</b> accelerate cover / add to mid bucket</div><div class="trg"><b>IF</b> price >= 4,532 MYR &nbsp;<b>THEN</b> slow buying, lean on inventory + hedges</div><div class="trg"><b>IF</b> volatility > 22% &nbsp;<b>THEN</b> raise the hedge ratio</div><div class="trg"><b>IF</b> USDINR > 97.6 &nbsp;<b>THEN</b> add an FX forward</div><div class="trg"><b>IF</b> inventory < reorder point (18,434 tonnes) &nbsp;<b>THEN</b> MANDATORY buy of 3,434 tonnes (supply continuity)</div><div class="trg"><b>IF</b> a key supplier / origin is disrupted (e.g. export ban) &nbsp;<b>THEN</b> raise safety stock & diversify origins before price-optimising</div>
+ <h3>Backtest - would it have helped? (real history)</h3>
+ <p>Replaying on the last year of prices, the engine's cost line was materially steadier than naive
+ spot buying, at roughly equal cost:</p>
+ <div class="chart-wrap"><svg viewBox="0 0 520 106" width="100%" style="max-width:560px"><text x="0" y="24" font-size="11" fill="#20222B">Palm oil (CPO)</text><rect x="130" y="13" width="330" height="16" rx="3" fill="#E4E2EC"/><rect x="130" y="13" width="218" height="16" rx="3" fill="#15803D"/><text x="353.8" y="25" font-size="10" fill="#6B7280">33% steadier</text><text x="0" y="54" font-size="11" fill="#20222B">Crude oil (Brent)</text><rect x="130" y="43" width="330" height="16" rx="3" fill="#E4E2EC"/><rect x="130" y="43" width="125" height="16" rx="3" fill="#15803D"/><text x="261.4" y="55" font-size="10" fill="#6B7280">19% steadier</text><text x="0" y="84" font-size="11" fill="#20222B">Silver</text><rect x="130" y="73" width="330" height="16" rx="3" fill="#E4E2EC"/><rect x="130" y="73" width="66" height="16" rx="3" fill="#15803D"/><text x="202.0" y="85" font-size="10" fill="#6B7280">10% steadier</text></svg></div>
+</div></div>
+
+<h2>5. Portfolio view - the multi-commodity pay-off</h2>
+<p>Because commodities don't move together, buying them as a <b>portfolio</b> nets some risk away.
+Correlations of daily returns:</p>
+<div class="chart-wrap"><table class="corr"><tbody><tr><td></td><th>Palm</th><th>Crude</th><th>Silver</th></tr><tr><th style='text-align:left'>Palm</th><td style="background:rgba(120,35,220,0.65);color:#fff">+1.00</td><td style="background:rgba(120,35,220,0.30900000000000005);color:#20222B">+0.38</td><td style="background:#f3f4f8;color:#20222B">+0.01</td></tr><tr><th style='text-align:left'>Crude</th><td style="background:rgba(120,35,220,0.30900000000000005);color:#20222B">+0.38</td><td style="background:rgba(120,35,220,0.65);color:#fff">+1.00</td><td style="background:rgba(192,36,59,0.136);color:#20222B">-0.09</td></tr><tr><th style='text-align:left'>Silver</th><td style="background:#f3f4f8;color:#20222B">+0.01</td><td style="background:rgba(192,36,59,0.136);color:#20222B">-0.09</td><td style="background:rgba(120,35,220,0.65);color:#fff">+1.00</td></tr></tbody></table></div>
+<div class="callout">If the three risks simply added up: <b>₹43 Cr</b>.
+ Netted across the portfolio: <b>₹29 Cr</b> &#8594;
+ a <b>33% natural-hedge benefit</b> at no extra cost, purely from
+ managing them together instead of in silos.</div>
+
+<h2>6. Risk-appetite presets (one dial, set by the council)</h2>
+<div class="chart-wrap"><table><thead><tr><th>Preset</th><th>&#955; (RALC)</th><th>Max cover</th><th>Max hedge</th><th>Auto-execute cap</th></tr></thead><tbody><tr><td>Conservative</td><td>1.5</td><td>85%</td><td>80%</td><td>₹60 Cr</td></tr><tr><td>Balanced</td><td>0.8</td><td>60%</td><td>50%</td><td>₹40 Cr</td></tr><tr><td>Aggressive</td><td>0.3</td><td>40%</td><td>30%</td><td>₹20 Cr</td></tr></tbody></table></div>
+<p class="muted">The preset sets both the optimiser's &#955; and the hard caps the autonomy runs inside -
+so risk appetite is a single, governed choice.</p>
+
+<h2>7. Where exactly the AI / LLM is used (and where it is NOT)</h2>
+<p>This is important: the AI does <b>not</b> invent the numbers. The pricing maths (RALC, Monte-Carlo, the
+frontier) stays a <b>transparent, auditable engine</b>. The AI sits <i>around</i> it &mdash; it turns messy
+real-world text into structured, cited inputs, explains and drafts, and executes inside hard limits. Here is
+every touchpoint, mapped to the four stages:</p>
+<div class="chart-wrap"><table>
+ <thead><tr><th>Stage</th><th>AI component</th><th>Technique</th><th>Reads</th><th>Produces</th><th>Human control</th></tr></thead>
+ <tbody>
+ <tr><td><b>SENSE</b></td><td>Market sensing</td><td><b>LLM</b></td><td>News, MPOB/USDA reports, export-duty notices, weather &amp; port advisories, analyst notes</td><td>A <b>fundamentals bias (&minus;1..+1)</b> per commodity, each with a one-line reason + source link</td><td>Analyst sees the citation; can reject it</td></tr>
+ <tr><td><b>SENSE</b></td><td>Document extraction</td><td><b>LLM</b></td><td>Supplier contracts, invoices, customs &amp; quality docs, ERP demand files</td><td>Structured fields (volumes, prices, incoterms, dates) that feed inventory &amp; lead-time inputs automatically</td><td>Validated against ERP</td></tr>
+ <tr><td><b>SCORE</b></td><td>&mdash; (deliberately none)</td><td>Rules</td><td>The 6 signals</td><td>The 0&ndash;100 score by a fixed formula</td><td>Kept rules-based on purpose so it is auditable</td></tr>
+ <tr><td><b>DECIDE</b></td><td>Scenario forecasting</td><td><b>ML</b> (+LLM)</td><td>Price/vol history + the LLM's event read</td><td>Probabilities for the price paths (replaces the plain random walk); a fatter up-tail if an export ban is likely</td><td>Council sets the risk preset (&lambda;, caps)</td></tr>
+ <tr><td><b>DECIDE</b></td><td>Anomaly detection</td><td><b>ML</b></td><td>Live price, FX, freight, basis</td><td>Flags an odd move and auto-fires the matching trigger</td><td>Alerts a human; thresholds are set</td></tr>
+ <tr><td><b>ACT</b></td><td>Agentic execution &amp; drafting</td><td><b>LLM agent</b></td><td>The engine's chosen plan + the policy caps</td><td>Drafts the order, checks it vs guardrails, auto-executes inside caps <i>or</i> writes the escalation memo</td><td>Hard caps + manual override; every action audited</td></tr>
+ <tr><td><b>ALL</b></td><td>Natural-language Q&amp;A &amp; explanations</td><td><b>LLM</b></td><td>A plain-English question + the live model</td><td>"Margin if palm +10% &amp; rupee &minus;3%?" &#8594; runs the model &amp; explains; also writes the council memo &amp; weekly brief</td><td>Answers link back to the model run</td></tr>
+ <tr><td><b>MONITOR</b></td><td>Learning loop</td><td>ML + <b>LLM</b></td><td>Monthly back-test: calls vs actuals</td><td>Summarises what went right/wrong &amp; proposes weight/trigger tweaks</td><td>Changes need human sign-off</td></tr>
+ </tbody></table></div>
+<div class="callout"><b>The one rule that makes it trustworthy:</b> the LLM converts <i>text &#8594; structured, cited input</i>
+and drafts/explains/executes; it never sets a price or overrides a guardrail. So you get AI's reach over messy
+real-world information <b>plus</b> a fully auditable number engine &mdash; exactly what a large organisation can pilot.</div>
+
+<h2>8. How to run / change it</h2>
+<div class="callout"><b>To change the example:</b> edit <code>RISK_APPETITE</code>, demand, inventory or the
+commodity list at the top of <code>commodity_copilot.py</code>, run <code>python3 commodity_copilot.py</code>,
+then <code>python3 copilot_html.py</code> to rebuild this page and the slides.</div>
+
+<p class="foot">Generated by commodity_copilot.py + copilot_html.py from the data files in this folder.
+Illustrative decision-support tool - not financial advice.</p>
+</div></body></html>

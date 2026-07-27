@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Commodity Copilot — Buy / Hedge Decision Engine</title>
+<style>
+  :root{--p:#7823DC;--pd:#4C1D95;--t:#0F766E;--ink:#20222B;--mut:#5b6270;--line:#e4e2ec;--tint:#F5EEFD;--bg:#f6f7fb}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+  .top{height:6px;background:linear-gradient(90deg,var(--p),#B06BF2)}
+  .wrap{max-width:1000px;margin:0 auto;padding:34px 22px 80px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--p);text-transform:uppercase}
+  h1{font-size:34px;margin:6px 0 6px;line-height:1.12}
+  h1 b{color:var(--p)}
+  .sub{color:var(--mut);font-size:18px;max-width:760px;margin:0 0 20px}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 26px}
+  .btn{display:inline-block;padding:11px 16px;border-radius:9px;font-weight:700;font-size:14.5px;text-decoration:none;border:1.5px solid var(--p)}
+  .btn.primary{background:var(--p);color:#fff}
+  .btn.ghost{background:#fff;color:var(--pd)}
+  .shot{width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 40px rgba(76,29,149,.15);display:block}
+  .capt{color:var(--mut);font-size:13px;text-align:center;margin:8px 0 30px}
+  h2{font-size:22px;margin:34px 0 10px;padding-top:14px;border-top:2px solid #ececf2}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;text-decoration:none;color:inherit;
+        display:block;transition:transform .1s,box-shadow .1s}
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07)}
+  .card h3{margin:0 0 4px;color:var(--pd);font-size:16px}
+  .card p{margin:0;color:var(--mut);font-size:13.5px}
+  .card .go{color:var(--p);font-weight:700;font-size:13px;margin-top:8px;display:inline-block}
+  ul{padding-left:20px}li{margin:5px 0}
+  .stage{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0}
+  .st{background:#fff;border:1px solid var(--line);border-top:3px solid var(--p);border-radius:10px;padding:10px 12px}
+  .st b{color:var(--pd)}.st span{display:block;color:var(--mut);font-size:13px;margin-top:3px}
+  code{background:#eee9f6;padding:2px 6px;border-radius:5px;font-size:14px}
+  .callout{background:var(--tint);border:1px solid #d8b8fb;border-radius:12px;padding:14px 18px;margin:16px 0}
+  .foot{color:var(--mut);font-size:13px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+  .foot b{color:var(--p)}
+  @media(max-width:640px){.stage{grid-template-columns:1fr 1fr}h1{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="top"></div>
+<div class="wrap">
+  <div class="eyebrow">Procurement case-study prototype · Open-source · Deployed</div>
+  <h1>AI <b>Commodity Copilot</b><br>a Buy / Hedge Decision Engine</h1>
+  <p class="sub">Helps a procurement team decide <b>what to buy, when, how much, and whether to hedge</b> —
+  fusing a <b>Financial</b> and a <b>Supply-Chain</b> track through a <b>Sense → Score → Decide → Act</b>
+  engine, and choosing the plan with the best <b>risk-adjusted cost</b>.</p>
+
+  <div class="btns">
+    <a class="btn primary" href="explainer.html">▶ Interactive explainer (with charts)</a>
+    <a class="btn ghost" href="slides.html">Executive slides</a>
+    <a class="btn ghost" href="recommendation.html">Recommendation slide</a>
+    <a class="btn ghost" href="audit.html">Full audit document</a>
+    <a class="btn ghost" href="https://github.com/pulket/commodity-buy-hedge-copilot">Source code (GitHub)</a>
+  </div>
+
+  <img class="shot" src="app_screenshot.png" alt="Commodity Copilot web application">
+  <div class="capt">The working Streamlit web app — set the options, upload your sales file, and run.</div>
+
+  <h2>How it works — Sense → Score → Decide → Act</h2>
+  <div class="stage">
+    <div class="st"><b>1 · Sense</b><span>6 market signals + supply-chain signals (demand, inventory, lead time, suppliers)</span></div>
+    <div class="st"><b>2 · Score</b><span>a 0–100 Buy-Now score and a supply-urgency score</span></div>
+    <div class="st"><b>3 · Decide</b><span>Monte-Carlo → the buy/hedge mix with the lowest RALC (risk-adjusted cost)</span></div>
+    <div class="st"><b>4 · Act</b><span>auto-execute inside governance caps, else escalate — humans stay in control</span></div>
+  </div>
+  <ul>
+    <li><b>Monte-Carlo simulation</b> — 20,000 possible price futures, not a single guess.</li>
+    <li><b>RALC objective</b> — optimises expected cost <i>and</i> stability together.</li>
+    <li><b>Buy-timing dynamic program</b> — physical buy-and-hold (with holding cost) vs hedge, whichever is cheaper.</li>
+    <li><b>Portfolio view</b> — nets correlated risk across commodities.</li>
+    <li><b>Explainable &amp; governed</b> — confidence, top drivers, audit trail, human override.</li>
+  </ul>
+
+  <h2>Explore the solution</h2>
+  <div class="cards">
+    <a class="card" href="explainer.html"><h3>Interactive explainer</h3><p>The full model with a worked example — efficient frontier, pay-off distribution, and every decision explained. All charts render in-page.</p><span class="go">Open →</span></a>
+    <a class="card" href="slides.html"><h3>Executive slides</h3><p>Two consulting-style slides: the solution architecture and the model in action.</p><span class="go">Open →</span></a>
+    <a class="card" href="recommendation.html"><h3>Recommendation slide</h3><p>The Executive Decision Cockpit: recommendation, drivers, scenarios, governance, learning loop.</p><span class="go">Open →</span></a>
+    <a class="card" href="audit.html"><h3>Full audit document</h3><p>Every number traced back to the raw data — nothing is a black box.</p><span class="go">Open →</span></a>
+  </div>
+
+  <h2>Run the live app yourself</h2>
+  <div class="callout">
+    The interactive app needs a Python server (this page is static hosting, so it can't run it here).
+    Two ways to run it:
+    <ul>
+      <li><b>Deploy free on Streamlit Community Cloud:</b> at <b>share.streamlit.io</b>, connect this repo
+        (<code>pulket/commodity-buy-hedge-copilot</code>), main file <code>app.py</code> → you get a permanent
+        <code>*.streamlit.app</code> URL.</li>
+      <li><b>Run locally:</b> <code>pip install -r requirements.txt</code> then <code>streamlit run app.py</code>.</li>
+    </ul>
+  </div>
+
+  <div class="foot">
+    <b>kearney</b> | AI Commodity Copilot &nbsp;·&nbsp;
+    Source: <a href="https://github.com/pulket/commodity-buy-hedge-copilot">github.com/pulket/commodity-buy-hedge-copilot</a>
+    &nbsp;·&nbsp; Illustrative decision-support tool — not financial advice.
+  </div>
+</div>
+</body>
+</html>
